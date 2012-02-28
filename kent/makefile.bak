@@ -1,0 +1,26 @@
+include ../common.mk
+#XINC = -I$(MYSQLINC)
+
+CC = gcc -m64
+O = common.o sqlNum.o memalloc.o osunix.o errabort.o hash.o linefile.o dlist.o obscure.o wildcmp.o dystring.o localmem.o pipeline.o verbose.o
+
+%.o: %.c
+	${CC} ${COPT} ${CFLAGS} ${LOWELAB_DEFS} ${HG_DEFS} ${HG_WARN} ${HG_INC} ${XINC} -o $@ -c $<
+
+lib:$(MACHTYPE)/kent.a
+
+$(MACHTYPE)/kent.a: $(O) $(MACHTYPE)
+	ar rcus $@ $(O)
+
+$(MACHTYPE):
+	mkdir $(MACHTYPE)
+
+test:
+	cd tests && ${MAKE} test
+
+cleanlocal:
+	rm -rf ${O} $(MACHTYPE)
+
+clean:cleanlocal
+
+#cd tests && ${MAKE} clean

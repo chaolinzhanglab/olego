@@ -1,0 +1,26 @@
+olego -- a NGS mapping tool for short or long reads to discover exon junction
+
+Jie Wu, Chaolin Zhang (czhang@rockefeller.edu)
+
+Aug 21 2011
+
+
+This is only a simple usage direction, detailed readme will come soon...
+
+First, you need to build your BWT index by running olegoindex:
+
+	olegoindex -a bwtsw mm9.fa (all chromosomes combined)
+
+Then you can run olego with the index files you generated. By simply run olego without any parameters, you can get a brief usage description. 
+
+Example pipeline:
+
+olego -v -s -t 16 -o f.sam ~/mz-local/database/mm9/genome/olego/mm9.fa f.fa
+# do the mapping with single anchor search enabled, with 16 cpu cores, output to f.sam
+
+olego -v -s -t 16 -o r.sam ~/mz-local/database/mm9/genome/olego/mm9.fa r.fa
+# do the samething for the other file
+
+mergePEsam.pl f.sam r.sam merge.sam
+# merge both ends into merge.sam
+
