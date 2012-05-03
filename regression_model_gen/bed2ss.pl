@@ -1,4 +1,4 @@
-
+# convert bed file into splice sites ( +-15 nt)
 use strict;
 use warnings;
 
@@ -9,17 +9,18 @@ use Carp;
 my $prog = basename ($0);
 
 my $verbose = 0;
-my $strandaware = 0;
+
+my $upflanking = 15;
+my $dnflanking = 15;
 
 GetOptions (
     "v|verbose"=>\$verbose,
-    "s"=>\$strandaware
 );
 
 if (@ARGV != 2)
 {
     print "bed format to junctions\n";
-    print "usage: $prog [options] <in.bed> <out> \n";
+    print "usage: $prog <in.bed> <out.bed> \n";
     exit(1);
 }
 
@@ -41,13 +42,7 @@ while(my $line = <$fin>)
     {
 	    my $start = $a[1] + $blockStarts[$i] + $blockSizes[$i];
 	    my $end = ($a[1] + $blockStarts[$i+1]);
-	    if( not $strandaware){
-		$junchash{join(",", $a[0], $start, $end)}++;
-	    }
-	    else
-	    {
-		$junchash{join(",", $a[0], $start, $end, $a[5])}++;
-	    }
+    	$junchash{join(",", $a[0], $start, $end, $a[5])}++;
 	    
     }
 
@@ -59,17 +54,13 @@ foreach my $key (keys %junchash)
 {
     my @a = split(",", $key);
     print $fout $a[0],"\t";
-    print $fout $a[1], "\t";
-    print $fout $a[2], "\t";
+    print $fout $a[1]-$upflanking, "\t";
+    print $fout $a[2]+$dnflanking, "\t";
     print $fout "\.\t";
     print $fout $junchash {$key},"\t";
-    if ( not $strandaware){
-	print $fout "+\n";
-    }
-    else
-    {
-	print $fout $a[3],"\n";
-    }
-    #print $a[5],"\n";
+    print $fout $a[3],"\t";
+    print $fout $a[1]-$upflanking, "\t";
+    print $fout $a[2]+$dnflanking, "\t";
+    print $fout "255,255,0\t", "2\t", "30,30,\t", "0,", $a[2]-$a[1], "\n"; 
 }
 close($fout);

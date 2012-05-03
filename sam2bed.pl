@@ -20,30 +20,30 @@ GetOptions ("uniq"=>\$printUniqOnly,
 
 if (@ARGV != 2 && @ARGV != 3)
 {
-	print "convert tophat sam format to BED format\n";
-	print "Usage: $prog [options] <in.sam> <out1.bed> [out2.bed]\n";
+	print "Converts OLego SAM format to BED format, works for paired end data and saves into a single BED file, only reports the major alignments. \n";
+	print "Usage: $prog [options] <in.sam> <out.bed>\n";
 	#print " -p: paired-end data\n";
 	print " -uniq : print uniquely mapped reads only\n";
-	print " -v    : verobse\n";
+	print " -v    : verbose\n";
 	exit (1);
 }
 
 my ($inSAMFile, $outBedFile) = @ARGV;
-my $outBedFile2 = "";
-if (@ARGV == 3)
-{
-	$outBedFile2 = $ARGV[2];
-	$pairedEnd = 1;
-}
+#my $outBedFile2 = "";
+#if (@ARGV == 3)
+#{
+#	$outBedFile2 = $ARGV[2];
+#	$pairedEnd = 1;
+#}
 
-my ($fin, $fout, $fout2);
+my ($fin, $fout);
 
 open ($fin, "<$inSAMFile") || Carp::croak "cannot open file $inSAMFile to read\n";
 open ($fout, ">$outBedFile") || Carp::croak "cannot open file $outBedFile to write\n";
-if ($pairedEnd)
-{
-	open ($fout2, ">$outBedFile2") || Carp::croak "cannot open file $outBedFile2 to write\n";
-}
+#if ($pairedEnd)
+#{
+#	open ($fout2, ">$outBedFile2") || Carp::croak "cannot open file $outBedFile2 to write\n";
+#}
 
 
 my $i = 0;
@@ -66,7 +66,7 @@ while (my $line = <$fin>)
 	#print $line, "\n";
 	my $flagInfo = decodeSAMFlag ($FLAG);
 	#Carp::croak Dumper ($flagInfo), "\n";
-	Carp::croak "inconsistency in specifying PE or SE data\n" if ($flagInfo->{'PE'} + $pairedEnd == 1);
+	#Carp::croak "inconsistency in specifying PE or SE data\n" if ($flagInfo->{'PE'} + $pairedEnd == 1);
 	#next unless $flagInfo->{'query_map'};
 
 	my $strand = $flagInfo->{'query_strand'};
@@ -174,23 +174,23 @@ while (my $line = <$fin>)
 	$outStr = join ("\t", $chrom, $chromStart, $chromEnd + 1, $name, $score, $strand,
 		$chromStart, $chromEnd + 1, 0, $blockCount, join (",", @blockSizes), join(",", @blockStarts));
 
-	if ($pairedEnd && $read1_or_2 == 2)
-	{
-		print $fout2 $outStr, "\n" unless $printUniqOnly == 1 && $uniq == 0; # unless $flagInfo->{'mate_map'};
-	}
-	else
-	{
+#	if ($pairedEnd && $read1_or_2 == 2)
+#	{
+#		print $fout2 $outStr, "\n" unless $printUniqOnly == 1 && $uniq == 0; # unless $flagInfo->{'mate_map'};
+#	}
+#	else
+#	{
 		if ($printUniqOnly == 0 || $uniq == 1)
 		{
 			print $fout $outStr, "\n" unless $flagInfo->{'query_map'};
 		}
-	}
+#	}
 }
 
 
 close ($fin);
 close ($fout);
-close ($fout2) if $pairedEnd;
+#close ($fout2) if $pairedEnd;
 
 
 sub decodeSAMFlag

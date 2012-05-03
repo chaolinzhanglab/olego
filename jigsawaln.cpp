@@ -40,8 +40,10 @@ gap_opt_t *gap_init_opt()
 	o->max_word_diff = 0;
 	o->max_word_occ = 1000;
 	o->min_anchor = 8;
+	o->known_junc_min_anchor = 5;
 	o->max_overhang = 6;
 	o->junction_file = 0;
+	o->regression_file = 0;
 	o->min_exon_size = 9;
 	o->max_intron_size = 500000;
 	o->min_intron_size = 20;
@@ -553,12 +555,13 @@ void jigsaw_extend_exon_exact (jigsaw_exon_t *exon, bwa_seq_t *seq, int directio
  */
 
 void jigsaw_extend_exon_inexact (jigsaw_exon_t *exon, bwa_seq_t *seq, int direction,
-		int64_t l_pac, const ubyte_t *pacseq, const ubyte_t *ntpac, bool stop_if_neg_score)
+		int64_t l_pac, const ubyte_t *pacseq, const ubyte_t *ntpac, bool stop_if_neg_score, int opt_max_diff)
 {
 	ubyte_t *query_seq = exon->strand ? seq->rseq : seq->seq;
 
 	jigsaw_exon_t *p = exon;
 	int match = 1, mismatch = -3, max_diff = 2;
+	if (opt_max_diff <2) max_diff = opt_max_diff;
 	//TODO: implicitly require 4 matches at the end
 
 	//extend on the left
@@ -628,12 +631,12 @@ void jigsaw_extend_exon_inexact (jigsaw_exon_t *exon, bwa_seq_t *seq, int direct
 
 
 void jigsaw_extend_exons (list<jigsaw_exon_t*> *exons, bwa_seq_t *seq,
-		int64_t l_pac, const ubyte_t *pacseq, const ubyte_t *ntpac, uint32_t exact, bool stop_if_neg_score)
+		int64_t l_pac, const ubyte_t *pacseq, const ubyte_t *ntpac, uint32_t exact, bool stop_if_neg_score, int opt_max_diff)
 {
 	list<jigsaw_exon_t*>::iterator iter;
 	for (iter = exons->begin(); iter != exons->end (); ++iter) {
 		jigsaw_exon_t *p = *iter;
-		exact ? jigsaw_extend_exon_exact (p, seq, 2, l_pac, pacseq, ntpac) : jigsaw_extend_exon_inexact (p, seq, 2, l_pac, pacseq, ntpac, stop_if_neg_score);
+		exact ? jigsaw_extend_exon_exact (p, seq, 2, l_pac, pacseq, ntpac) : jigsaw_extend_exon_inexact (p, seq, 2, l_pac, pacseq, ntpac, stop_if_neg_score, opt_max_diff);
 	}
 }
 
@@ -1188,7 +1191,7 @@ int jigsaw_locate_junc_one_anchor_with_anno_downstream(jigsaw_exon_t *exon, bwa_
 	  int64_t ue_end_q = exon->end_q - n_backsearch ;
 	  uint32_t type = sense_strand ? SPLICE_ACCEPTOR : SPLICE_DONOR;
 	  for (int64_t ue_end_t = min_ue_end_t; ue_end_t <= max_ue_end_t; ++ue_end_t, ue_end_q++) {
-	      if (seq->len - ue_end_q -1 < 5) break;//require min anchor size 5
+	      if (seq->len - ue_end_q -1 < opt->known_junc_min_anchor ) break;
 	      int64_t intron_start_t = ue_end_t + 1;
 	      splice_site_t* known_ss= retrieve_splice_site (opt->splice_site_map, intron_start_t, sense_strand, type);
 	      if(!known_ss) continue;
@@ -1338,7 +1341,7 @@ int jigsaw_locate_junc_one_anchor_denovo_downstream(jigsaw_exon_t *exon, bwa_seq
 		    if (known_ss) {
 			    splice_site_flag =1;
 		    }
-		    if (jigsaw_is_splice_site_pos (intron_start_t, type, sense_strand, l_pac, pacseq)) {
+		    else if (jigsaw_is_splice_site_pos (intron_start_t, type, sense_strand, l_pac, pacseq)) {
 			    splice_site_flag =1;
 		    }
 
@@ -1498,7 +1501,7 @@ int jigsaw_locate_junc_one_anchor_with_anno_upstream(jigsaw_exon_t *exon, bwa_se
 	    int64_t de_start_q = exon->start_q + n_backsearch;
 	    uint32_t type = sense_strand ? SPLICE_DONOR : SPLICE_ACCEPTOR;
 	    for (int64_t de_start_t = max_de_start_t; de_start_t >= min_de_start_t ; de_start_t--, de_start_q--) {
-		    if (de_start_q  < 5) break;//the min length is 5 now
+		    if (de_start_q  < opt->known_junc_min_anchor) break;
 		    int64_t intron_end_t = de_start_t - 1;
 		    splice_site_t* known_ss= retrieve_splice_site (opt->splice_site_map, intron_end_t, sense_strand, type);
 		    if(!known_ss) continue;
@@ -1640,7 +1643,7 @@ int jigsaw_locate_junc_one_anchor_denovo_upstream(jigsaw_exon_t *exon, bwa_seq_t
 	    if (known_ss) {
 		    splice_site_flag =1;
 	    }
-	    if (jigsaw_is_splice_site_pos (intron_end_t, type, sense_strand, l_pac, pacseq)) {
+	    else if (jigsaw_is_splice_site_pos (intron_end_t, type, sense_strand, l_pac, pacseq)) {
 		    splice_site_flag =1;
 	    }
 	    if(splice_site_flag) {
@@ -1774,12 +1777,10 @@ void jigsaw_locate_junc_one_anchor (jigsaw_exon_t* exon, bwa_seq_t *seq, int dir
 		if(opt->splice_site_map)
 		{
 		    num_junc_found_in_anno = jigsaw_locate_junc_one_anchor_with_anno_downstream(exon, seq, min_ue_end_t, max_ue_end_t, n_backsearch, pacseq, opt, junctions, exons);
-		    if(opt->non_denovo_search) return; 
-		   //stop here if both splice_site_map and non_denovo_search
 		}
 		//continue the following denovo search
 
-		num_junc_found_denovo = jigsaw_locate_junc_one_anchor_denovo_downstream(exon, seq, min_ue_end_t, max_ue_end_t,  n_backsearch,  l_pac, pacseq, ntpac,  bwt, g_log_n, opt, junctions, exons);
+		if (! opt->non_denovo_search) num_junc_found_denovo = jigsaw_locate_junc_one_anchor_denovo_downstream(exon, seq, min_ue_end_t, max_ue_end_t,  n_backsearch,  l_pac, pacseq, ntpac,  bwt, g_log_n, opt, junctions, exons);
 	}
 	else {
 
@@ -1792,9 +1793,8 @@ void jigsaw_locate_junc_one_anchor (jigsaw_exon_t* exon, bwa_seq_t *seq, int dir
 		//if a junction database is provided, search with it first
 		if(opt->splice_site_map){
 		    num_junc_found_in_anno = jigsaw_locate_junc_one_anchor_with_anno_upstream(exon, seq, min_de_start_t, max_de_start_t, n_backsearch, pacseq, opt, junctions, exons);
-		    if(opt->non_denovo_search) return;
 		}
-		num_junc_found_denovo = jigsaw_locate_junc_one_anchor_denovo_upstream(exon, seq, min_de_start_t, max_de_start_t,  n_backsearch,  l_pac, pacseq, ntpac,  bwt, g_log_n, opt, junctions, exons);
+		if (! opt->non_denovo_search)	num_junc_found_denovo = jigsaw_locate_junc_one_anchor_denovo_upstream(exon, seq, min_de_start_t, max_de_start_t,  n_backsearch,  l_pac, pacseq, ntpac,  bwt, g_log_n, opt, junctions, exons);
 		
 	}
 	return;
@@ -2147,7 +2147,10 @@ jigsaw_junction_t* _jigsaw_locate_junc_one_anchor (jigsaw_exon_t* exon, bwa_seq_
 int jigsaw_locate_junc_two_anchors_with_anno (jigsaw_exon_t *ue, jigsaw_exon_t *de, int64_t min_ue_end_t, int64_t max_ue_end_t, int n_backsearch, int gap_len, ubyte_t *gap_seq, ubyte_t *ref_seq,  const ubyte_t *pacseq, const AlnParam *ap, const gap_opt_t *opt, list<jigsaw_junction_t*> *junctions)
 
 {
-        int best_diff = opt->max_diff+1;
+	int local_max_diff = (int) opt->max_diff;
+	if(local_max_diff >2 ) local_max_diff = 2;
+        //int best_diff = opt->max_diff+1;
+	int best_diff = local_max_diff + 1;
 	int i;
 	int64_t k;
 	jigsaw_junction_t* p = 0;
@@ -2188,7 +2191,7 @@ int jigsaw_locate_junc_two_anchors_with_anno (jigsaw_exon_t *ue, jigsaw_exon_t *
 
 			  if(opt->report_best_only){  
 			      //better junction found
-			      if (diff <= (int) opt->max_diff && diff < best_diff) {
+			      if (diff <= local_max_diff && diff < best_diff) {
 					if (!p) p = (jigsaw_junction_t *) calloc (1, sizeof(jigsaw_junction_t));
 					p->strand = ue->strand; //strand of the splice site
 					//TODO: need to check the strand here
@@ -2211,7 +2214,7 @@ int jigsaw_locate_junc_two_anchors_with_anno (jigsaw_exon_t *ue, jigsaw_exon_t *
 			 }
 			 else {
 			    //push all results into the junctions
-			    if (diff <= (int) opt->max_diff ){
+			    if (diff <= local_max_diff ){
 				p = (jigsaw_junction_t *) calloc (1, sizeof(jigsaw_junction_t));
 				
 				p->strand = ue->strand;
@@ -2357,7 +2360,9 @@ int jigsaw_locate_junc_two_anchors_inner_exon_with_anno (jigsaw_exon_t *ue, jigs
     int min_exon_size = opt->min_exon_size;
     int64_t k;
     AlnParam ap = aln_param_bwa;
-    ap.band_width = opt->max_diff;
+    int local_max_diff = (int) opt->max_diff;
+    if(local_max_diff >2 ) local_max_diff = 2;
+    ap.band_width = local_max_diff;
     //TODO: need to check some place for +1 or -1
     list< pair<int64_t, int64_t> > us_sites;
     list< pair<int64_t, int64_t> > ds_sites;
@@ -2420,7 +2425,7 @@ int jigsaw_locate_junc_two_anchors_inner_exon_with_anno (jigsaw_exon_t *ue, jigs
 		    //int gap_len = de_start_q - 1 - ue_end_q -1 +1; 
 		    int gap_len = de_start_q  - ue_end_q -1;
 		    if(gap_len <min_exon_size) continue;
-		    if(me_end_t - me_start_t +1 - gap_len > opt->max_diff) continue;
+		    if(me_end_t - me_start_t +1 - gap_len > local_max_diff) continue;
 		    ubyte_t *gap_seq = seq + ue_end_q + 1;
 		    ubyte_t *ref_seq = (ubyte_t *) malloc(gap_len * sizeof(ubyte_t));
 		    int i = 0;
@@ -2435,7 +2440,7 @@ int jigsaw_locate_junc_two_anchors_inner_exon_with_anno (jigsaw_exon_t *ue, jigs
 		    free (path);
 		    free (ref_seq);
 		    int diff = n_mm + n_gapo_t + n_gapo_q + n_gape_t + n_gape_q;
-		    if (diff <= (int) opt->max_diff) {
+		    if (diff <= local_max_diff) {
 			ue->is_last = 0;
 			//create a middle exon
 			jigsaw_exon_t *me= (jigsaw_exon_t *)calloc(1, sizeof(jigsaw_exon_t));
@@ -2518,7 +2523,7 @@ int jigsaw_locate_junc_two_anchors_inner_exon_denovo(jigsaw_exon_t *ue, jigsaw_e
 	    if (known_ss_us) {
 		    splice_site_flag =1;
 	    }
-	    if (jigsaw_is_splice_site_pos ( ue_end_t +1, us_type, sense_strand, l_pac, pacseq)) {
+	    else if (jigsaw_is_splice_site_pos ( ue_end_t +1, us_type, sense_strand, l_pac, pacseq)) {
 		    splice_site_flag =1;
 	    }
 	    
@@ -2528,21 +2533,20 @@ int jigsaw_locate_junc_two_anchors_inner_exon_denovo(jigsaw_exon_t *ue, jigsaw_e
 		uint32_t ds_type = sense_strand ? SPLICE_DONOR : SPLICE_ACCEPTOR;
 		for(de_start_t = de->start_t + n_backsearch, de_start_q = de->start_q + n_backsearch; de_start_t >= de->start_t; de_start_t--, de_start_q--)	{
 		     if(de_start_t - ue_end_t < 2*opt->min_intron_size + opt->min_exon_size ) continue;
+		     int64_t length = de_start_q - ue_end_q -1;
+		     if (length < opt->min_exon_size) continue;
 			splice_site_flag = 0;
 			splice_site_t* known_ss_ds= retrieve_splice_site (opt->splice_site_map, de_start_t - 1, sense_strand, ds_type);
 			//note, retrieve_splice_site and jigsaw_is_splice_site_pos are tricky...pay attention to the pos used, use intron end here
 			if (known_ss_ds) {
 				splice_site_flag = 1;
 			}
-			if (jigsaw_is_splice_site_pos (de_start_t - 1, ds_type, sense_strand, l_pac, pacseq)) {
+			else if (jigsaw_is_splice_site_pos (de_start_t - 1, ds_type, sense_strand, l_pac, pacseq)) {
 				splice_site_flag = 1;
 			}
 			//cool to go 
 			if(splice_site_flag)
 			{
-
-			    int64_t length = de_start_q - ue_end_q -1;
-			    if (length < opt->min_exon_size) continue;
 			    jigsaw_anchor_seq_t *anchor_seq = (jigsaw_anchor_seq_t*) calloc (1, sizeof(jigsaw_anchor_seq_t) );
 			    //get splice sites
 			    ubyte_t *us_ss = (ubyte_t*) calloc (2, sizeof(ubyte_t) );
@@ -2679,29 +2683,14 @@ int jigsaw_locate_junc_two_anchors_inner_exon_denovo(jigsaw_exon_t *ue, jigsaw_e
 /*
  * TODO: 1. it does not allow indels during local search of splice sites now, need to be extended later
  */
-//jigsaw_junction_t* jigsaw_locate_junc_two_anchors (jigsaw_exon_t *ue, jigsaw_exon_t *de,
-//		ubyte_t *seq, uint32_t seq_len, const ubyte_t *pacseq, const ubyte_t *ntpac, int max_overhang, int max_diff)
 void jigsaw_locate_junc_two_anchors (jigsaw_exon_t *ue, jigsaw_exon_t *de,
                 ubyte_t *seq, uint32_t seq_len, const ubyte_t *pacseq, const ubyte_t *ntpac, int64_t l_pac, bwt_t *const bwt[2], const int *g_log_n, const gap_opt_t *opt,
                 list<jigsaw_junction_t*> *junctions, list<jigsaw_exon_t*> *exons)
-
-/*
- * try to list parameters in some logical way
- *
- * the logic of two anchored junction search can probably be improved. we may miss the optimal one in some (relatively rare) cases, and the code is duplicated.
- *  one possibility is:
- *
- * 1. for possible ue end, find possible de start based on known junctions (you can save the information into jigsaw_junction_t and push them into a list)
- * 2. if de novo search is turn on, for possible ue end, find additional possible de start (constrained by min/max intron size and canonical splice sites, push this to the list
- * 3. for all possible junction in the list, find the one with the best alignment.
- *
- * */
 
 {
 	//TODO: there might be over estimate when we need to come back to find the splice sites, and there is mismatch in the region
 	//specified by max_overhang, should be relatively rare though
 
-	
 	int n_backsearch = opt->max_overhang;
 
 	//when sequences extends beyond splice sites by chance, we can increase the overhang
@@ -2726,7 +2715,6 @@ void jigsaw_locate_junc_two_anchors (jigsaw_exon_t *ue, jigsaw_exon_t *de,
 
 	AlnParam ap = aln_param_bwa;
 	//TODO: need more sophisticated rules; the bound is too loose here
-	//ap.band_width = int (opt->max_diff/2 + 0.5);
 	ap.band_width =  int (opt->max_diff );
 	if( (!opt->splice_site_map) && ap.band_width>2) ap.band_width = 2;
 
@@ -2746,7 +2734,6 @@ void jigsaw_locate_junc_two_anchors (jigsaw_exon_t *ue, jigsaw_exon_t *de,
 	    //stop here if both splice_site_map and non_denovo_search
 
 	}
-	//TODO: need to tweak in the opt to make sure either there is splice_site_map or denovo_search specified
 	if((opt->non_denovo_search == 0) && de->start_t - 1 - ue->end_t < opt->max_intron_size) 
 
         {
@@ -2755,15 +2742,15 @@ void jigsaw_locate_junc_two_anchors (jigsaw_exon_t *ue, jigsaw_exon_t *de,
        }
        free (ref_seq);
        
-     //only do this if no junction was found above
-     if( num_junc_found_denovo ==0 && num_junc_found_in_anno == 0){
-	 //TODO: enable this when anno provided, need more details later
+     // only do this if no junction was found above 
+     // or there is a junction db
+     if(opt->splice_site_map ||( num_junc_found_denovo ==0 && num_junc_found_in_anno == 0) ) {
 	int num_me_found_in_anno = 0, num_me_found_denovo = 0;	
 	if (de->start_t - 1 - ue->end_t > 2 * opt->max_intron_size + opt->min_anchor) return;
 	 if(opt->splice_site_map) {
 	     num_me_found_in_anno = jigsaw_locate_junc_two_anchors_inner_exon_with_anno(ue, de, min_ue_end_t, max_ue_end_t, n_backsearch, seq, pacseq, ntpac, l_pac,  bwt, g_log_n, opt, junctions, exons);
 	 }
-	 else{
+	 if (opt->non_denovo_search == 0){
 	     num_me_found_denovo = jigsaw_locate_junc_two_anchors_inner_exon_denovo(ue, de, min_ue_end_t, max_ue_end_t, n_backsearch, seq, pacseq, ntpac, l_pac,  bwt, g_log_n, opt, junctions, exons);
 	 }
       }
@@ -2808,7 +2795,6 @@ void jigsaw_pair_exons (bwa_seq_t *seq, list<jigsaw_exon_t*> *exons, const gap_o
 
 			if ( (!opt->splice_site_map) && de->start_t - 1 - ue->end_t > 2 * opt->max_intron_size) break;
 			//two times of max_intron size, since we may have an exon between them
-		//	jigsaw_junction_t *p = jigsaw_locate_junc_two_anchors (ue, de, strand ? seq->rseq : seq->seq, seq->len, pacseq, ntpac, opt,l_pac, bwt, g_log_n );
 			jigsaw_locate_junc_two_anchors (ue, de, ue->strand ? seq->rseq : seq->seq, seq->len, pacseq, ntpac, l_pac, bwt, g_log_n, opt, junctions, exons);
 
 
@@ -2901,9 +2887,8 @@ void jigsaw_uniq_junctions ( list<jigsaw_junction_t*> *junctions )
    }
 }
 
-/* TODO: need to leave room for terminal junctions in each alignment
+/* 
  * alignment will be saved in aln
- * if necessary, a big chunk of memory will be allocated and the new pointer will be returned
  */
 void jigsaw_concat_junctions (list <jigsaw_junction_t*> *junctions, int len,
 		uint32_t global, list<jigsaw_spliced_aln_t*> *aln)
@@ -2962,7 +2947,10 @@ void jigsaw_concat_junctions (list <jigsaw_junction_t*> *junctions, int len,
 	bool no_need_to_update_aln_list = 1;
 	while (iter != junctions->end()) {
 		curr_p = *iter;
-		//TODO: could do some speedup since it's inside one cluster, could stop or do some recovery if the aln is not conitnuous. but list<aln> comes from all the clusters, so its big and everytime we go from the first aln, might do some optimization here. 
+		//TODO: could do some speedup since it's inside one cluster, now the code is for general use
+		//could stop or do some recovery if the aln is not conitnuous. but list<aln> comes from all the clusters, so its big and everytime we go from the first aln, might do some optimization here. 
+		//leave it like this for now Apr 11th WJ
+		
 		//since junctions are ordered according to the start position
 		//we should seek the possibility of extension in the existing alignment
 		//we also need to make branch if the junction "overlaps" with the last one, in the multiple output mode
@@ -3254,7 +3242,7 @@ void jigsaw_search_spliced_aln (jigsaw_spliced_aln_cluster_t *clust, bwa_seq_t *
 	//fprintf (stderr, "extend exon\n");
 
 	bool stop_if_neg_score = false;
-	jigsaw_extend_exons (clust->exons, seq, l_pac, pacseq, ntpac, extend_exact, stop_if_neg_score);
+	jigsaw_extend_exons (clust->exons, seq, l_pac, pacseq, ntpac, extend_exact, stop_if_neg_score, opt->max_diff);
 
 	//fprintf (stderr, "refine exon\n");
 
@@ -3270,7 +3258,6 @@ void jigsaw_search_spliced_aln (jigsaw_spliced_aln_cluster_t *clust, bwa_seq_t *
 	if (clust->junctions->size() > 0)
 		jigsaw_concat_junctions (clust->junctions, seq->len, global, aln);
 
-	//find terminal junctions using one anchor
 	//return aln;
 }
 
@@ -3506,9 +3493,6 @@ void jigsaw_aln_one_spliced (bwt_t *const bwt[2], bwa_seq_t *seq, const int *g_l
 		int64_t l_pac, const ubyte_t *pacseq, const ubyte_t *ntpac,
 		/*gap_stack_t *stack,*/ int n_occ, const gap_opt_t *opt)
 {
-	//the maximum occ of a word to be considered as a seed
-	//TODO: to be moved to options
-	//int max_word_occ = 1000, max_intron_size = 750000;
 	float max_aln_score = 1;
 	uint32_t extend_exact = 0, global = 1;
 
@@ -3685,10 +3669,16 @@ void jigsaw_aln_one (bwt_t *const bwt[2], bwa_seq_t *seq, const int *g_log_n,
 	//fprintf (stderr, "standard alignment\n");
 	//fprintf (stderr,"%s\n", seq->name);
 	gap_opt_t local_opt = *opt;
-	if(local_opt.max_diff >2 ) local_opt.max_diff = 2;
-	if (opt->non_denovo_search && opt->splice_site_map ) local_opt.max_diff = 0;
-	//TODO: now use a local opt, if matches can be found with in the diffs, then we don't look for spliced alns, 
-	//the higher this number, the faster the program is
+	if (opt->non_denovo_search && !(opt->splice_site_map) ) { /*local_opt.max_diff = opt.max_diff; */}
+	//this only happens when non-denovo without annotation db
+	//keep the original max_diff
+	else{
+	
+	    if(local_opt.max_diff >2) local_opt.max_diff = 2;
+	    if(opt->splice_site_map ) local_opt.max_diff = 0;
+	    //no matter if there is denovo search, we want to recover as many as junctions if the user provide a db
+	    //TODO: need to setup an option, if matches can be found with in the diffs, then we don't look for spliced alns, The higher this number, the faster the program is
+	}
 
 	jigsaw_cal_sa_reg_gap(bwt, p, stack, &local_opt);
 
@@ -3709,8 +3699,8 @@ void jigsaw_aln_one (bwt_t *const bwt[2], bwa_seq_t *seq, const int *g_log_n,
 	}
 	else {
 		//fprintf (stderr, "spliced alignment\n");
-
-		jigsaw_aln_one_spliced (bwt, seq, g_log_n, l_pac, pacseq, ntpac, n_occ, opt);
+		if ( (! opt->non_denovo_search) || opt->splice_site_map) 
+		    jigsaw_aln_one_spliced (bwt, seq, g_log_n, l_pac, pacseq, ntpac, n_occ, opt);
 
 		if (seq->c1 == 0) {
 			//no match, call original BWA functions
@@ -3912,6 +3902,14 @@ void jigsaw_aln_core(const char *prefix, /*prefix of the genome index*/
 			opt->splice_site_map = build_splice_site_map (bns, opt->junction_file);
 			if (opt->verbose) fprintf(stderr, "%.2f sec\n", (float)(clock() - t) / CLOCKS_PER_SEC);
 			t = clock();
+		}
+		//load regression model
+		if (opt->regression_file) {
+		    if (opt->verbose) fprintf (stderr, "loading the regression model ...");
+		    load_model_cfg (opt->regression_file);
+		    if (opt->verbose) fprintf(stderr, "%.2f sec\n", (float)(clock() - t) / CLOCKS_PER_SEC);
+		    t = clock();
+
 		}
 	}
 

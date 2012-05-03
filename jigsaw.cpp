@@ -69,6 +69,8 @@ int main (int argc, char *argv[])
 			{"max-intron",		required_argument, 	0, 'I'},
 			{"min-intron",		required_argument, 	0, 'i'},
 			{"min-anchor",		required_argument, 	0, 'a'},
+			{"known-junc-min-anchor",   required_argument,      0, 'k'},
+			{"regression-model",	required_argument,      0, 'r'},
 			{"junction-file",	required_argument, 	0, 'j'},
 			{"num-threads",		required_argument, 	0, 't'},
 			{"best",		no_argument,		0, 'b'},
@@ -99,7 +101,7 @@ int main (int argc, char *argv[])
 	int option_index = 0;
 
 	while ((c = getopt_long (argc, argv,
-				"c012o:w:W:M:m:I:i:a:j:t:vLsn",
+				"c012o:w:W:M:m:I:i:a:j:r:t:k:vLsn",
 				long_options, &option_index)) >= 0) {
 		switch (c) {
 		case -1 : break; //the end of the options
@@ -119,8 +121,10 @@ int main (int argc, char *argv[])
 		case 'I': opt->max_intron_size = atoi(optarg); break;
 		case 'i': opt->min_intron_size = atoi(optarg); break;
 		case 'a': opt->min_anchor = atoi(optarg); break;
+		case 'k': opt->known_junc_min_anchor = atoi(optarg); break;
 		case 's': opt->single_anchor_search = 1; break;
 		case 'n': opt->non_denovo_search = 1; break;
+		case 'r': opt->regression_file = optarg; break;
 		case 'j': opt->junction_file = optarg; break;
 		case 't': opt->n_threads = atoi(optarg); break;
 		case 'v': opt->verbose = 1; break;
@@ -193,7 +197,7 @@ int main (int argc, char *argv[])
 	}
 
 	if (optind + 2 > argc) {
-		fprintf(stderr, "Usage:   jigsaw [options] <prefix> <in.fastx>\n");
+		fprintf(stderr, "Usage:   olego [options] <prefix> <in.fastx>\n");
 		/*
 		fprintf(stderr, "[\ninput options]\n");
 		fprintf(stderr, " -c,--color-space             input sequences are in the color space\n");
@@ -214,8 +218,10 @@ int main (int argc, char *argv[])
 		fprintf(stderr, " -I,--max-intron       INT    max intron size for de novo search [%d]\n", opt->max_intron_size);
 		fprintf(stderr, " -i,--min-intron       INT    min intron size for de novo search [%d]\n", opt->min_intron_size);
 		fprintf(stderr, " -a,--min-anchor       INT    min anchor on both sides of an exon junction [%d]\n", opt->min_anchor);
+		fprintf(stderr, " -k,--known-junc-min-anchor	INT min anchor on both sides of an known exon junction [%d]\n",opt->known_junc_min_anchor);
 		fprintf(stderr, " -b,--best                    only report the best alignments\n");
 		fprintf(stderr, " -s,--single-anchor           allow single anchor de-novo junction search\n");
+		fprintf(stderr, " -r,--regression-model FILE   the file with the logit regression model\n");
 		fprintf(stderr, " -j --junction-file    FILE   exon junction BED file\n");
 		fprintf(stderr, " -t,--num-threads      INT    number of threads [%d]\n", opt->n_threads);
 		fprintf(stderr, " -v,--verbose                 verbose mode\n");
@@ -248,9 +254,12 @@ int main (int argc, char *argv[])
 		int i, k;
 		for (i = 17, k = 0; i <= 250; ++i) {
 			int l = bwa_cal_maxdiff(i, BWA_AVG_ERR, opt->fnr);
-			if (l != k) fprintf(stderr, "[bwa_aln] %dbp reads: max_diff = %d\n", i, l);
+			if (l != k) fprintf(stderr, "[olego_aln] %dbp reads: max_diff = %d\n", i, l);
 			k = l;
 		}
+	}
+	if (opt->non_denovo_search && (opt->splice_site_map == 0)) {
+	    fprintf(stderr,"[olego_aln] Warning! Non-denovo search mode without junction annotation, no splice mapping will be reported!\n" );
 	}
 	jigsaw_aln_core(argv[optind], argv[optind+1], opt);
 	free(opt);

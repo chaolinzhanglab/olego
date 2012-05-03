@@ -1,26 +1,332 @@
-olego -- a NGS mapping tool for short or long reads to discover exon junction
+OLego -- a NGS mapping tool for short or long reads to discover exon junction
 
-Jie Wu, Chaolin Zhang (czhang@rockefeller.edu)
+Jie Wu (wuj@cshl.edu), Chaolin Zhang (czhang@rockefeller.edu)
 
 Aug 21 2011
 
+What is OLego?
+======================
 
-This is only a simple usage direction, detailed readme will come soon...
+OLego is a program specifically designed for de novo spliced mapping of mRNA-seq reads. OLego adopts a seeding and extension scheme, and does not rely on a separate external mapper. It achieves high sensitivity of junction detection by using very small seeds (12-14 nt), efficiently mapped using Burrows-Wheeler transform (BWT) and FM-index. This also makes it particularly sensitive for discovering small exons. It is implemented in C++ with full support of multiple threading, to allow fast processing of large-scale data.
 
-First, you need to build your BWT index by running olegoindex:
 
-	olegoindex -a bwtsw mm9.fa (all chromosomes combined)
+Prerequisites
+======================
 
-Then you can run olego with the index files you generated. By simply run olego without any parameters, you can get a brief usage description. 
+The major programs of OLego (olego and olegoindex ) can be installed and ran on Unix-based system with GCC compiler installed. We provided set of scripts for postanalysis and regression model construction, these codes may require Perl and R installed. 
 
-Example pipeline:
+Installation
+======================
 
-olego -v -s -t 16 -o f.sam ~/mz-local/database/mm9/genome/olego/mm9.fa f.fa
-# do the mapping with single anchor search enabled, with 16 cpu cores, output to f.sam
+OLego uses some source code from Kent (http://genomewiki.ucsc.edu/index.php/Kent_source_utilities), so the first thing you need to do is setting up the environment variable MACHTYPE.
 
-olego -v -s -t 16 -o r.sam ~/mz-local/database/mm9/genome/olego/mm9.fa r.fa
-# do the samething for the other file
+The following instructions are from readme file in Kent package:
 
-mergePEsam.pl f.sam r.sam merge.sam
-# merge both ends into merge.sam
+The default MACHTYPE is often a long string: "i386-redhat-linux-gnu" which will not function correctly. It needs to be something simple such as one of:i386 i686 sparc alpha x86_64 ppc etc ... with no other alpha characters. To determine what your system reports itself as, try the uname options: 'uname -m' or 'uname -p' or 'uname -a' on your command line.
+
+If necessary set this environment variable. Do this under the bash shell as so::
+
+	MACHTYPE=something
+	export MACHTYPE
+
+or under tcsh as so::
+
+	setenv MACHTYPE something
+
+and place this setting in your home directory .bashrc or .tcshrc environment files so it will be set properly the next time you login.  Remember to "export" it as show here for the bash shell.
+
+Now you can go to the OLego directory and type::
+
+	make
+
+If everything goes right, you will find two executable files olegoindex and olego in the folder.
+
+Please feel free to report any problems you come up with.
+
+
+Usage
+======================
+
+Build the index for the genome sequence
+----------------------------------------
+
+To run OLego, you need a BWT index for the reference sequences, you can build the index with olegoindex::
+
+	olegoindex [-a bwtsw|div|is] [-c] <in.fasta>
+
+Arguments:
+
+	<in.fasta>  This is the fasta format file with the reference sequence. Please put all the sequences (from different chromosomes ) in a single file.
+	
+Options:
+
+    ========    ==================================================================	
+    Option	Description
+    ========    ==================================================================
+    -a		BWT construction algorithm: bwtsw or is [default: is]
+    -p		prefix of the index [default: the same as the fasta file name]
+    -c		build color-space index
+    ========    ==================================================================
+	
+Caution: please use "-a bwtsw" for long genome (like human or mouse genome).
+
+There will be 8 files (prefix.pac, prefix.ann, prefix.amb, prefix.rpac, prefix.bwt, prefix.rbwt, prefix.sa, prefix.rsa ) generated after olegoindex finished.
+
+Running OLego
+----------------------
+
+Now you can map your mRNA-seq reads to the genome with olego::
+
+	olego [options] <prefix> <in.fastx>
+
+The arguments and options are decribed as below:
+
+Arguments:
+^^^^^^^^^^^^^^^^^^^^^^
+
+    =========== =============================================================================================
+    Argument	Description
+    ===========	=============================================================================================	
+    <prefix>	The base name of the genome sequence index. Please include the path to the index folder i
+		to make sure that the program can find the index files.
+    <in.fastx>	Either fasta or fastq file would work as input.
+    ===========	=============================================================================================
+
+Basic options
+^^^^^^^^^^^^^^^^^^^^^^
+
+    =====================   ===========================================================================
+    Options		    Descriptions
+    =====================   ===========================================================================
+    -o,--output-file	    Name of the output file [ default: stdout ]. This file will be in SAM
+			    format, with the same tags used by BWA. Please look for the details 
+			    below.
+    -M,--max-total-diff	    Maximum total difference between query read and reference sequences. 
+			    Either INT or FLOAT number can be used for this option. An INT number 
+			    will specify the maximum total edit distance allowed for each alignment 
+			    [ default: 4 ]. An FLOAT number will specify the fraction of missing 
+			    alignments given 2% uniform base error rate [default: 0.04 ]. These 
+			    parameter is the same as -n in BWA. 
+    -w,--word-size	    The size of the seed used in junction mapping (int) [ default: 14 ]. 
+			    The default seed size is recommanded for reads >100 nt. For shorter
+			    reads, a smaller number can be used. 
+    -W,--max-word-occ	    Maximum number of the occurrence a seed to be used in the further 
+			    steps (int) [ default 1000]. If a seed has more than this number of 
+			    hits found in the genome, it will be considerred repeptive and all 
+			    of its hits will be discarded. 
+    -m,--max-word-diff	    Maximum edit distance allowed in each seed (int) [ default: 0 ]. 
+			    Since our seed size is smaller than other programs, we recommend that 
+			    the user use a small number for this option.  
+    -I,--max-intron	    Maximum intron size for de novo junction search (int) [ default: 500000 ].
+    -i,--min-intron	    Minimum intron size for de novo junction search (int) [ default: 20 ].
+    -a,--min-anchor	    Minimum anchor size in de novo single anchor junction searches (int) 
+			    [ default: 8 ]. We define "anchor size" as the smaller number of matched 
+			    nucleotides on the read at the end of the junction. 
+    -k,--known-min-anchor   Minimum anchor size in single anchor junction searches when the junction
+			    is known (int) [ default: 5 ].
+    -b,--best		    Only report the best alignments. 
+    -s,--single-anchor	    Allow single anchor de-novo junction search. [ default: false ].
+    -j --junction-file	    BED file for known exon junctions. Please see the junc format 
+			    description below
+    -t,--num-threads	    Number of threads (int) [ default: 1 ].
+    -v,--verbose	    Verbose mode [ default: false ].
+    =====================   ===========================================================================
+
+Advanced options
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+    ======================  =================================================================================
+    Option		    Description
+    ======================  =================================================================================
+    --min-exon-size	    Minimum micro-exon size to be searched (int) [ default: 9 ].
+    --min-logit-score	    logit score of splice sites motif and intron size, in the range of 
+			    [0,1) [0.50]
+    -n,--non-denovo	    No de novo junction search. If this option is sepcified, only known 
+			    junctions will be searched. 
+    --max-overhang	    Maximum number or overhanging nucleotide allowed near junctions (int) 
+			    [ default: 6 ]. After we extend the candidate exons, we search for 
+			    splice site in the overhanging regions around the candidate exon boundary. 
+    --max-gapo		    Maximum number of gap opens (int) [ default: 1 ].
+    --max-gape		    Maximum number of gap extensions, -1 for disabling long gaps (int) 
+			    [ default: -1 ]. 
+    --indel-end-skip	    In BWT querying, do not put an indel within this number towards the ends [ default: 5 ].
+    --gape-max-occ	    Mmaximum occurrences for extending a long deletion in BWT querying [ default: 10 ]. 
+    --penalty-mismatch	    Mismatch penalty [ default: 3 ] #TODO check all options below later
+    --penalty-gapo	    Gap open penalty [ default: 11 ]
+    --penalty-gape	    Gap extension penalty [ default: 4 ]
+    --log-gap		    log-scaled gap penalty for long deletions
+    --max-entries	    Maximum entries in the queue [2000000]
+    --repeat		    Stop searching when there are >INT equally best hits [30]
+    --none-stop             non-iterative mode: search for all n-difference hits (slooow)
+    ======================  =================================================================================
+
+Other useful scripts
+---------------------
+
+mergePEsam.pl
+^^^^^^^^^^^^^^^^^^^^^
+
+This script can be used to merge SAM format mapping results from paired end reads. The two ends will be merged according to their distances. The script requires the two ends come from the same chromosome and the distance between them smaller than the threshold specified by option -d.   
+
+Usage::
+
+	    perl mergePEsam.pl [options] <end1.sam> <end2.sam> <out.sam> 
+
+Arguments:
+
+    =========== ==========================================================================
+    Argument	Description
+    ===========	==========================================================================
+    <end1.sam>	The SAM format output from one end of the reads. 
+    <end2.sam>	The SAM format output from the other end of the reads. Please make sure 
+		the same lines in end1.sam and end2.sam are corresponded (i.e. from the 
+		same read pair ). 
+    <out.sam>	The output file. In SAM format, sorted by the read names.
+    ===========	==========================================================================
+    
+Options:
+
+    ======  ==============================================================================
+    -d	    Maximum distance between the two ends on genome [ default:5000000 ].
+    -v	    verbose.
+    ======  ==============================================================================
+
+xa2multi.pl
+^^^^^^^^^^^^^^^^^^^^^
+
+This script can be used to extract all the alignments after XA in each line. The current version is from BWA package, to be improved later. 
+
+Usage::
+	
+	perl xa2multi.pl in.sam >out.sam
+
+
+sam2bed.pl
+^^^^^^^^^^^^^^^^^^^^^
+
+This script converts SAM format output from OLego into BED format file. Only the best alignment of each read will be used. 
+
+
+bed2junc.pl
+^^^^^^^^^^^^^^^^^^^^^
+
+This script can be used to retrieve junctions from BED format file. The number of supporting reads of each junction will be in the score (5th) column. The output file can be used as annotation file for OLego (option -j).
+
+Usage::
+	
+	    perl bed2junc.pl <in.bed> <out>
+
+Arguments:
+    
+    ==========  ====================================================================
+    Argument	Description
+    ==========	====================================================================
+    <in.bed>	The input BED file with the mapping results.
+    <out>	The output BED format file with the junctions. This file can be directly 
+		used as junction annotation file for olego. 
+    ==========	====================================================================
+
+regression_model_gen
+^^^^^^^^^^^^^^^^^^^^^
+
+This set of scripts can be used to generate the user defined logistic regression model. 
+
+Usage::
+
+	    perl regression_model_gen/OLego_regression.pl [options]
+
+Options:
+
+	========    ==============================================================
+	Options	    Description
+	========    ==============================================================
+        -g	    The location of the fasta files downloaded from UCSC genome 
+		    browser, the names of the Fasta files should be something 
+		    like chr1.fa etc.
+        -a	    BED format annotation files for the true transcripts. True 
+		    junctions will be extracted from this file. 
+        -o	    Output prefix [default: userdefined].
+	========    ==============================================================
+
+The model file will be generated in output_prefix.cache/output_prefix.cfg. 
+				
+
+Additional notes
+=====================
+
+File formats
+---------------------
+
+SAM format
+^^^^^^^^^^^^^^^^^^^^^
+
+OLego outputs the alignments in SAM format (http://samtools.sourceforge.net). Its specification can be found on samtools' website. 
+
+The following tags are used in OLego. Please pay attention to the X? tags, most of them were adapted from BWA, except XS:
+
+    ===	===================================================
+    Tag	Meaning
+    === ===================================================
+    NM	Edit distance
+    MD	Mismatching positions/bases
+    X0	Number of best hits
+    X1	Number of suboptimal hits
+    XM	Number of mismatches in the alignment
+    XO	Number of gap opens
+    XG	Number of gap extentions
+    XT	Type: Unique/Repeat
+    XA	Alternative hits; format: (chr,pos,CIGAR,NM;)*
+    XS	Strand of the query 
+    === ===================================================
+
+Addtional scripts have been provided in the package for processing OLego output: sam2bed.pl can be used for conversion from SAM to BED format; xa2multi.pl can extract alignments after XA tags; mergePEsam.pl can merge the two outputs from paired-end RNA-seq data. 
+
+For general processing of SAM files, please check SAMTools. 
+
+junc format
+^^^^^^^^^^^^^^^^^^^^^
+
+OLego takes junction annotations in junc format:
+    
+    =============   ======  ===================================================
+    Column number   Name    Description
+    =============   ======  ===================================================
+    1		    chrom   The name of the chromosome
+    2		    start   The starting position of the junction (intron)
+    3		    end	    The ending position of the junction (intron)
+    4		    name    Name of the junction
+    5		    score   This column is reserved as the score of the junction, 
+			    the bed2junc.pl provided in the package will output 
+			    evidence number in this column. 
+    6		    strand  Strand of the junction
+    =============   ======  ===================================================
+
+Examples
+=====================
+
+Example pipeline::
+
+    olegoindex -a bwtsw mm9.fa (all chromosomes combined)
+    # build your BWT index
+
+    olego -v -s -t 16 -o f.sam ~/mz-local/database/mm9/genome/olego/mm9.fa f.fa
+    # do the mapping with single anchor search enabled, with 16 cpu cores, output to f.sam
+
+    olego -v -s -t 16 -o r.sam ~/mz-local/database/mm9/genome/olego/mm9.fa r.fa
+    # do the same thing for the other file
+
+    mergePEsam.pl f.sam r.sam merge.sam
+    # merge both ends into merge.sam
+
+    sam2bed.pl merge.sam merge.bed
+    # convert the SAM file to BED file
+
+    bed2junc.pl merge.bed merge.junc
+    # find the junctions in the BED file
+
+    olego -v -s -t 16 -o f.remap.sam -j merge.junc --non-denovo ~/mz-local/database/mm9/genome/olego/mm9.fa f.fa
+    olego -v -s -t 16 -o r.remap.sam -j merge.junc --non-denovo ~/mz-local/database/mm9/genome/olego/mm9.fa r.fa
+    # do a remapping to rescue more reads, no more de novo mapping here since we already used a junction annotation. 
+
+
 

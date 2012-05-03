@@ -659,6 +659,8 @@ void bwa_print_sam1(const bntseq_t *bns, bwa_seq_t *p, const bwa_seq_t *mate, in
 			if (nn > 10) XT = 'N';
 			// print tags
 			printf("\tXT:A:%c\t%s:i:%d", XT, (mode & BWA_MODE_COMPREAD)? "NM" : "CM", p->nm);
+			// print XS tag, to be compatible with Cufflinks
+			printf("\tXS:A:%c", p->strand ? '-':'+' );
 			if (nn) printf("\tXN:i:%d", nn);
 			if (mate) printf("\tSM:i:%lu\tAM:i:%d", p->seQ, am);
 			if (p->type != BWA_TYPE_MATESW) { // X0 and X1 are not available for this type of alignment

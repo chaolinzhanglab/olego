@@ -223,7 +223,7 @@ typedef struct {
 	int max_word_diff;
 	int max_word_occ;
 	int max_intron_size, min_intron_size;
-	int min_anchor;
+	int min_anchor, known_junc_min_anchor;
 	int min_exon_size;
 	int max_overhang;
 	int s_mm, s_gapo, s_gape;
@@ -235,7 +235,7 @@ typedef struct {
 	int n_threads;
 	int max_top2;
 	int trim_qual;
-	char *rg, *junction_file;
+	char *rg, *junction_file, *regression_file;
 	splice_site_map_t *splice_site_map;
 	uint32_t verbose;
 	uint32_t single_anchor_search;
