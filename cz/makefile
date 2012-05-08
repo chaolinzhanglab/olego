@@ -6,19 +6,16 @@ O = BedFile.o utils.o
 %.o: %.cpp
 	${CC} ${COPT} ${CFLAGS} ${LOWELAB_DEFS} ${HG_DEFS} ${HG_WARN} ${XINC} -o $@ -c $<
 
-lib:$(MACHTYPE)/czlib.a
+lib:czlib.a
 
-$(MACHTYPE)/czlib.a: $(O) $(MACHTYPE)
+czlib.a: $(O)
 	ar rcus $@ $(O)
-
-$(MACHTYPE):
-	mkdir $(MACHTYPE)
 
 test:
 	cd tests && ${MAKE} test
 
 cleanlocal:
-	rm -rf ${O} $(MACHTYPE)
+	rm -rf ${O} czlib.a
 
 clean:cleanlocal
 

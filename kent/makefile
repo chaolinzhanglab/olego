@@ -9,19 +9,16 @@ O = common.o sqlNum.o memalloc.o osunix.o errabort.o hash.o linefile.o dlist.o o
 %.o: %.c
 	${CC} ${COPT} ${CFLAGS} ${LOWELAB_DEFS} ${HG_DEFS} ${HG_WARN} -o $@ -c $<
 
-lib:$(MACHTYPE)/kent.a
+lib:kent.a
 
-$(MACHTYPE)/kent.a: $(O) $(MACHTYPE)
+kent.a: $(O)
 	ar rcus $@ $(O)
-
-$(MACHTYPE):
-	mkdir $(MACHTYPE)
 
 test:
 	cd tests && ${MAKE} test
 
 cleanlocal:
-	rm -rf ${O} $(MACHTYPE)
+	rm -rf ${O} kent.a
 
 clean:cleanlocal
 

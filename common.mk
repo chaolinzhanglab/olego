@@ -5,8 +5,8 @@ ifeq (${COPT},)
     COPT=-O -g
 endif
 CFLAGS=
-HG_DEFS=-D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -D_GNU_SOURCE -DMACHTYPE_${MACHTYPE}
-HG_INC=-I${JKSRCHOME}/inc -I${JKSRCHOME}/hg/inc -I../include
+HG_DEFS=-D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -D_GNU_SOURCE #-DMACHTYPE_${MACHTYPE}
+#HG_INC=-I${JKSRCHOME}/inc -I${JKSRCHOME}/hg/inc -I../include
 
 #global external libraries 
 L=
@@ -115,7 +115,7 @@ ifeq (${HG_WARN},)
       HG_WARN = -Wall -Wformat -Wimplicit -Wreturn-type
       HG_WARN_UNINIT=-Wuninitialized
     else
-      HG_WARN = -Wall -Werror -Wformat -Wimplicit -Wreturn-type
+      HG_WARN = -Wall -Werror #-Wformat -Wimplicit -Wreturn-type
       # HG_WARN = -Wall -Wformat -Wimplicit -Wreturn-type
       HG_WARN_UNINIT=-Wuninitialized
     endif

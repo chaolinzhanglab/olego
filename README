@@ -4,38 +4,24 @@ Jie Wu (wuj@cshl.edu), Chaolin Zhang (czhang@rockefeller.edu)
 
 Aug 21 2011
 
+This is an initial version of the manual, please check back often for updates! 
+
 What is OLego?
 ======================
 
 OLego is a program specifically designed for de novo spliced mapping of mRNA-seq reads. OLego adopts a seeding and extension scheme, and does not rely on a separate external mapper. It achieves high sensitivity of junction detection by using very small seeds (12-14 nt), efficiently mapped using Burrows-Wheeler transform (BWT) and FM-index. This also makes it particularly sensitive for discovering small exons. It is implemented in C++ with full support of multiple threading, to allow fast processing of large-scale data.
 
+OLego uses some source code from Kent (http://genomewiki.ucsc.edu/index.php/Kent_source_utilities) and was rewritten from BWA (http://bio-bwa.sourceforge.net/). It is an open source code project and released under GPLv3. 
 
 Prerequisites
 ======================
 
-The major programs of OLego (olego and olegoindex ) can be installed and ran on Unix-based system with GCC compiler installed. We provided set of scripts for postanalysis and regression model construction, these codes may require Perl and R installed. 
+The major programs of OLego (olego and olegoindex ) can be installed and ran on Unix-based system with GCC compiler installed. We provided set of scripts for post analysis and regression model construction, these codes may require Perl and R installed. 
 
 Installation
 ======================
 
-OLego uses some source code from Kent (http://genomewiki.ucsc.edu/index.php/Kent_source_utilities), so the first thing you need to do is setting up the environment variable MACHTYPE.
-
-The following instructions are from readme file in Kent package:
-
-The default MACHTYPE is often a long string: "i386-redhat-linux-gnu" which will not function correctly. It needs to be something simple such as one of:i386 i686 sparc alpha x86_64 ppc etc ... with no other alpha characters. To determine what your system reports itself as, try the uname options: 'uname -m' or 'uname -p' or 'uname -a' on your command line.
-
-If necessary set this environment variable. Do this under the bash shell as so::
-
-	MACHTYPE=something
-	export MACHTYPE
-
-or under tcsh as so::
-
-	setenv MACHTYPE something
-
-and place this setting in your home directory .bashrc or .tcshrc environment files so it will be set properly the next time you login.  Remember to "export" it as show here for the bash shell.
-
-Now you can go to the OLego directory and type::
+To compile OLego on your computer, please go to the OLego directory and type::
 
 	make
 
@@ -119,6 +105,7 @@ Basic options
 			    the user use a small number for this option.  
     -I,--max-intron	    Maximum intron size for de novo junction search (int) [ default: 500000 ].
     -i,--min-intron	    Minimum intron size for de novo junction search (int) [ default: 20 ].
+    -e,--min-exon	    Minimum micro-exon size to be searched (int) [ default: 9 ].
     -a,--min-anchor	    Minimum anchor size in de novo single anchor junction searches (int) 
 			    [ default: 8 ]. We define "anchor size" as the smaller number of matched 
 			    nucleotides on the read at the end of the junction. 
@@ -128,6 +115,8 @@ Basic options
     -s,--single-anchor	    Allow single anchor de-novo junction search. [ default: false ].
     -j --junction-file	    BED file for known exon junctions. Please see the junc format 
 			    description below
+    -n,--non-denovo	    No de novo junction search. If this option is sepcified, only known 
+			    junctions will be searched. 
     -t,--num-threads	    Number of threads (int) [ default: 1 ].
     -v,--verbose	    Verbose mode [ default: false ].
     =====================   ===========================================================================
@@ -138,11 +127,8 @@ Advanced options
     ======================  =================================================================================
     Option		    Description
     ======================  =================================================================================
-    --min-exon-size	    Minimum micro-exon size to be searched (int) [ default: 9 ].
     --min-logit-score	    logit score of splice sites motif and intron size, in the range of 
 			    [0,1) [0.50]
-    -n,--non-denovo	    No de novo junction search. If this option is sepcified, only known 
-			    junctions will be searched. 
     --max-overhang	    Maximum number or overhanging nucleotide allowed near junctions (int) 
 			    [ default: 6 ]. After we extend the candidate exons, we search for 
 			    splice site in the overhanging regions around the candidate exon boundary. 

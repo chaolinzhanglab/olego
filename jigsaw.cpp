@@ -68,19 +68,19 @@ int main (int argc, char *argv[])
 			{"max-word-diff",	required_argument, 	0, 'm'},
 			{"max-intron",		required_argument, 	0, 'I'},
 			{"min-intron",		required_argument, 	0, 'i'},
+			{"min-exon", 		required_argument,  0, 'e'},
 			{"min-anchor",		required_argument, 	0, 'a'},
 			{"known-junc-min-anchor",   required_argument,      0, 'k'},
-			{"regression-model",	required_argument,      0, 'r'},
+			{"regression-model",		required_argument,      0, 'r'},
 			{"junction-file",	required_argument, 	0, 'j'},
+			{"non-denovo",      no_argument,        0, 'n'},
 			{"num-threads",		required_argument, 	0, 't'},
 			{"best",		no_argument,		0, 'b'},
 			{"single-anchor",	no_argument,		0, 's'},
 			{"verbose",			no_argument, 		0, 'v'},
 
 			/*advanced options*/
-			{"min-exon-size",         required_argument,      0, 0},
 			{"min-logit-score",         required_argument,      0, 0},
-			{"non-denovo",       no_argument,            0, 'n'},
 			{"max-overhang",    required_argument,  0, 0},
 			{"max-gapo", 		required_argument, 	0, 0},
 			{"max-gape", 		required_argument, 	0, 0},
@@ -120,6 +120,7 @@ int main (int argc, char *argv[])
 		case 'm': opt->max_word_diff = atoi(optarg); break;
 		case 'I': opt->max_intron_size = atoi(optarg); break;
 		case 'i': opt->min_intron_size = atoi(optarg); break;
+		case 'e': opt->min_exon_size = atoi (optarg); break;
 		case 'a': opt->min_anchor = atoi(optarg); break;
 		case 'k': opt->known_junc_min_anchor = atoi(optarg); break;
 		case 's': opt->single_anchor_search = 1; break;
@@ -179,9 +180,6 @@ int main (int argc, char *argv[])
 			else if (strcmp (long_options[option_index].name, "min-logit-score") == 0 ) {
 				opt->min_logit_score = atof (optarg);
 			}
-			else if (strcmp (long_options[option_index].name, "min-exon-size") == 0 ) {
-				opt->min_exon_size = atoi (optarg);
-			}
 
 			//	int tmp = optarg;
 			//}
@@ -207,7 +205,7 @@ int main (int argc, char *argv[])
 		fprintf(stderr, " -2,--read2                   use the 2nd read in a pair (effective with -b)\n");
 		fprintf(stderr, " -r,--rg-line          TXT    RG line\n");
 		*/
-		fprintf(stderr, "Compiled with OCC_INTERVAL=%d at %s, %s\n", OCC_INTERVAL, __TIME__, __DATE__);
+		fprintf(stderr, "Compiled at %s, %s\n", __TIME__, __DATE__);
 		fprintf(stderr, "\n[basic options]\n");
 		fprintf(stderr, " -o,--output-file      FILE   file to write output to instead of stdout\n");
 		fprintf(stderr, " -M,--max-total-diff   INT    max #diff (int)[%d] or missing prob under %.2f err rate (float) [%.2f]\n",
@@ -217,19 +215,19 @@ int main (int argc, char *argv[])
 		fprintf(stderr, " -m,--max-word-diff    INT    max #diff allowed in words [%d]\n", opt->max_word_diff);
 		fprintf(stderr, " -I,--max-intron       INT    max intron size for de novo search [%d]\n", opt->max_intron_size);
 		fprintf(stderr, " -i,--min-intron       INT    min intron size for de novo search [%d]\n", opt->min_intron_size);
+		fprintf(stderr, " -e,--min-exon         INT    minimum exon size [%d]\n", opt->min_exon_size);
 		fprintf(stderr, " -a,--min-anchor       INT    min anchor on both sides of an exon junction [%d]\n", opt->min_anchor);
 		fprintf(stderr, " -k,--known-junc-min-anchor	INT min anchor on both sides of an known exon junction [%d]\n",opt->known_junc_min_anchor);
 		fprintf(stderr, " -b,--best                    only report the best alignments\n");
 		fprintf(stderr, " -s,--single-anchor           allow single anchor de-novo junction search\n");
 		fprintf(stderr, " -r,--regression-model FILE   the file with the logit regression model\n");
 		fprintf(stderr, " -j --junction-file    FILE   exon junction BED file\n");
+		fprintf(stderr, " -n,--non-denovo              only search known junctions, must turn on -j\n");
 		fprintf(stderr, " -t,--num-threads      INT    number of threads [%d]\n", opt->n_threads);
 		fprintf(stderr, " -v,--verbose                 verbose mode\n");
 
 		fprintf(stderr, "\n[advanced options]\n");
-		fprintf(stderr, " --min-exon-size       INT    minimum exon size [%d]\n", opt->min_exon_size);
 		fprintf(stderr, " --min-logit-score     FLOAT  logit score of splice sites motif and intron size, in the range of [0,1) [%.2f]\n", opt->min_logit_score);
-		fprintf(stderr, " -n,--non-denovo              only search known junctions, must turn on -j\n");
 		fprintf(stderr, " --max-overhang        INT    maximum number or overhanging nucleotide allowed near junctions [%d]\n", opt->max_overhang);
 		fprintf(stderr, " --max-gapo            INT    maximum number or fraction of gap opens [%d]\n", opt->max_gapo);
 		fprintf(stderr, " --max-gape            INT    maximum number of gap extensions, -1 for disabling long gaps [-1]\n");

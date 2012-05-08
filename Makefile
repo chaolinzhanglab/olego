@@ -19,9 +19,8 @@ OBJS=		utils.o bwt.o bwtio.o jigsawaln.o bwtgap.o is.o \
 PROG=		olego olegoindex #bwtsw #jigsawse
 INCLUDES= 	-I./kent -I./cz	
 
-#JKSRCLIBDIR = ${JKSRCHOME}/lib/${MACHTYPE}
 LIBS=		-lm -lz -lpthread -Lbwt_gen -lbwtgen
-LIBS2=		./cz/$(MACHTYPE)/czlib.a ./kent/$(MACHTYPE)/kent.a
+LIBS2=		./cz/czlib.a ./kent/kent.a
 
 SUBDIRS=	. bwt_gen kent cz
 
