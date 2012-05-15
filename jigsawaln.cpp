@@ -49,7 +49,7 @@ gap_opt_t *gap_init_opt()
 	o->min_intron_size = 20;
 	o->single_anchor_search = 0;
 	o->non_denovo_search = 0;
-	o->min_logit_score = 0.5;
+	o->min_logistic_prob = 0.5;
 	o->splice_site_map = 0;
 	o->s_mm = 3; o->s_gapo = 11; o->s_gape = 4;
 	o->max_diff = 4; o->max_gapo = 1; o->max_gape = 6;
@@ -1256,8 +1256,8 @@ int jigsaw_locate_junc_one_anchor_with_anno_downstream(jigsaw_exon_t *exon, bwa_
 				  junction->end_q = junction->start_q + 1;
 				  junction->start_t = ue_end_t;
 				  junction->end_t = de->start_t;
-				  junction->logit_score = 1;
-				   // junction->logit_score = get_splice_score(pacseq, ue_end_t, de->start_t);
+				  junction->logistic_prob = 1;
+				   // junction->logistic_prob = get_splice_score(pacseq, ue_end_t, de->start_t);
 			    }
 		      }
 		      else{
@@ -1296,8 +1296,8 @@ int jigsaw_locate_junc_one_anchor_with_anno_downstream(jigsaw_exon_t *exon, bwa_
 			     junction->end_q = junction->start_q + 1;
 			     junction->start_t = ue_end_t;
 			     junction->end_t = de->start_t;
-			     //junction->logit_score = get_splice_score(pacseq, ue_end_t, de->start_t);
-			     junction->logit_score = 1;
+			     //junction->logistic_prob = get_splice_score(pacseq, ue_end_t, de->start_t);
+			     junction->logistic_prob = 1;
 			     junctions->push_back(junction);
 			     exons->push_back(de);
 			     num_junc_found_in_anno++;
@@ -1443,7 +1443,7 @@ int jigsaw_locate_junc_one_anchor_denovo_downstream(jigsaw_exon_t *exon, bwa_seq
 					    junction->end_q = junction->start_q + 1;
 					    junction->start_t = ue_end_t;
 					    junction->end_t = de->start_t;
-					    junction->logit_score = get_splice_score(pacseq, ue_end_t, de->start_t);
+					    junction->logistic_prob = get_splice_score(pacseq, ue_end_t, de->start_t);
 
 					    junctions->push_back(junction);
 					    exons->push_back(de);
@@ -1560,8 +1560,8 @@ int jigsaw_locate_junc_one_anchor_with_anno_upstream(jigsaw_exon_t *exon, bwa_se
 					junction->end_q = junction->start_q + 1;
 					junction->start_t = ue->end_t;
 					junction->end_t = de_start_t;
-				    //junction->logit_score = get_splice_score(pacseq, ue->end_t, de_start_t);
-				    junction->logit_score = 1;
+				    //junction->logistic_prob = get_splice_score(pacseq, ue->end_t, de_start_t);
+				    junction->logistic_prob = 1;
 					
 				}
 			    }
@@ -1597,8 +1597,8 @@ int jigsaw_locate_junc_one_anchor_with_anno_upstream(jigsaw_exon_t *exon, bwa_se
 				    junction->end_q = junction->start_q + 1;
 				    junction->start_t = ue->end_t;
 				    junction->end_t = de_start_t;
-				    //junction->logit_score = get_splice_score(pacseq, ue->end_t, de_start_t);
-				    junction->logit_score = 1;
+				    //junction->logistic_prob = get_splice_score(pacseq, ue->end_t, de_start_t);
+				    junction->logistic_prob = 1;
 
 				    junctions->push_back(junction);
 				    exons->push_back(ue);
@@ -1731,7 +1731,7 @@ int jigsaw_locate_junc_one_anchor_denovo_upstream(jigsaw_exon_t *exon, bwa_seq_t
 				    junction->end_q = junction->start_q + 1;
 				    junction->start_t = ue->end_t;
 				    junction->end_t = de_start_t;
-				    junction->logit_score = get_splice_score(pacseq, ue->end_t, de_start_t);
+				    junction->logistic_prob = get_splice_score(pacseq, ue->end_t, de_start_t);
 				    
 				    junctions->push_back(junction);
 				    exons->push_back(ue);
@@ -2204,8 +2204,8 @@ int jigsaw_locate_junc_two_anchors_with_anno (jigsaw_exon_t *ue, jigsaw_exon_t *
 					p->n_gapo_t = n_gapo_t; p->n_gape_t = n_gape_t;
 					p->n_gapo_q = n_gapo_q; p->n_gape_q = n_gape_q;
 					
-					//p->logit_score = get_splice_score(pacseq, ue_end_t, de_start_t);
-					p->logit_score = 1;
+					//p->logistic_prob = get_splice_score(pacseq, ue_end_t, de_start_t);
+					p->logistic_prob = 1;
 					ue->is_last = 0; de->is_first = 0;
 					
 					best_diff = diff;
@@ -2228,8 +2228,8 @@ int jigsaw_locate_junc_two_anchors_with_anno (jigsaw_exon_t *ue, jigsaw_exon_t *
 				p->n_gapo_q = n_gapo_q; p->n_gape_q = n_gape_q;
 				
 				ue->is_last = 0; de->is_first = 0;	
-				//p->logit_score = get_splice_score(pacseq, ue_end_t, de_start_t);
-				p->logit_score = 1;
+				//p->logistic_prob = get_splice_score(pacseq, ue_end_t, de_start_t);
+				p->logistic_prob = 1;
 							
 				junctions->push_back(p);  
 				num_junc_found_in_anno++;
@@ -2317,7 +2317,7 @@ int jigsaw_locate_junc_two_anchors_denovo (jigsaw_exon_t *ue, jigsaw_exon_t *de,
 			    p->n_mm = n_mm;
 			    p->n_gapo_t = n_gapo_t; p->n_gape_t = n_gape_t;
 			    p->n_gapo_q = n_gapo_q; p->n_gape_q = n_gape_q;
-			    p->logit_score = get_splice_score(pacseq, ue_end_t, de_start_t);
+			    p->logistic_prob = get_splice_score(pacseq, ue_end_t, de_start_t);
 
 			    best_diff = diff;
 			    ue->is_last = 0; de->is_first = 0;
@@ -2336,7 +2336,7 @@ int jigsaw_locate_junc_two_anchors_denovo (jigsaw_exon_t *ue, jigsaw_exon_t *de,
 			p->n_gapo_t = n_gapo_t; p->n_gape_t = n_gape_t;
 			p->n_gapo_q = n_gapo_q; p->n_gape_q = n_gape_q;
 			ue->is_last = 0; de->is_first = 0;
-			p->logit_score = get_splice_score(pacseq, ue_end_t, de_start_t);
+			p->logistic_prob = get_splice_score(pacseq, ue_end_t, de_start_t);
 			
 			junctions->push_back(p);
 			
@@ -2472,8 +2472,8 @@ int jigsaw_locate_junc_two_anchors_inner_exon_with_anno (jigsaw_exon_t *ue, jigs
 			us_junction->end_q = us_junction->start_q +1;
 			us_junction->start_t =  ue_end_t;
 			us_junction->end_t = me->start_t;
-			//us_junction->logit_score = get_splice_score(pacseq, ue_end_t, me->start_t);
-			us_junction->logit_score = 1;
+			//us_junction->logistic_prob = get_splice_score(pacseq, ue_end_t, me->start_t);
+			us_junction->logistic_prob = 1;
 			junctions->push_back(us_junction);
 			jigsaw_junction_t *ds_junction = (jigsaw_junction_t*) calloc (1, sizeof(jigsaw_junction_t));
 			ds_junction->uexon = me;
@@ -2485,8 +2485,8 @@ int jigsaw_locate_junc_two_anchors_inner_exon_with_anno (jigsaw_exon_t *ue, jigs
 			ds_junction->end_q = ds_junction->start_q +1;
 			ds_junction->start_t = me->end_t;
 			ds_junction->end_t = de_start_t;
-			//ds_junction->logit_score = get_splice_score(pacseq, me->end_t, de_start_t);
-			ds_junction->logit_score = 1;
+			//ds_junction->logistic_prob = get_splice_score(pacseq, me->end_t, de_start_t);
+			ds_junction->logistic_prob = 1;
 			junctions->push_back(ds_junction);
 			
 			num_me_found_in_anno++; 
@@ -2634,7 +2634,7 @@ int jigsaw_locate_junc_two_anchors_inner_exon_denovo(jigsaw_exon_t *ue, jigsaw_e
 					    us_junction->end_q = us_junction->start_q +1;
 					    us_junction->start_t = ue_end_t;
 					    us_junction->end_t = me->start_t;
-				    us_junction->logit_score = get_splice_score(pacseq, ue_end_t, me->start_t);
+				    us_junction->logistic_prob = get_splice_score(pacseq, ue_end_t, me->start_t);
 
 					    junctions->push_back(us_junction);
 					    
@@ -2649,7 +2649,7 @@ int jigsaw_locate_junc_two_anchors_inner_exon_denovo(jigsaw_exon_t *ue, jigsaw_e
 					    ds_junction->end_q = ds_junction->start_q +1;
 					    ds_junction->start_t = me->end_t;
 					    ds_junction->end_t = de_start_t;
-				    ds_junction->logit_score = get_splice_score(pacseq, me->end_t, de_start_t);
+				    ds_junction->logistic_prob = get_splice_score(pacseq, me->end_t, de_start_t);
 
 					    junctions->push_back(ds_junction);
 					    exons->push_back(me);
@@ -3103,7 +3103,7 @@ void jigsaw_concat_junctions (list <jigsaw_junction_t*> *junctions, int len,
 		curr_aln->n_gapo_q = first->uexon->n_gapo_q;
 		curr_aln->n_gape_q = first->uexon->n_gape_q;
 		curr_aln->diff = 0;
-		curr_aln->logit_score = 0.0;
+		curr_aln->logistic_prob = 0.0;
 
 		for (iter = curr_aln->junctions->begin(); iter != curr_aln->junctions->end(); ++iter) {
 			p = *iter;
@@ -3120,12 +3120,12 @@ void jigsaw_concat_junctions (list <jigsaw_junction_t*> *junctions, int len,
 			curr_aln->n_gapo_q += p->dexon->n_gapo_q;
 			curr_aln->n_gape_q += p->dexon->n_gape_q;
 
-			curr_aln->logit_score += p->logit_score;
+			curr_aln->logistic_prob += p->logistic_prob;
 		}
 
 		curr_aln->diff = curr_aln->n_mm + curr_aln->n_gapo_t + curr_aln->n_gape_t
 				+ curr_aln->n_gapo_q + curr_aln->n_gape_q;
-		curr_aln->logit_score = curr_aln->logit_score / curr_aln->junctions->size();
+		curr_aln->logistic_prob = curr_aln->logistic_prob / curr_aln->junctions->size();
 
 		if (global) {
 			curr_aln->diff += curr_aln->start_q;
@@ -3171,7 +3171,7 @@ bool jigsaw_spliced_aln_comp_diff (const jigsaw_spliced_aln_t *a, const jigsaw_s
 
 	//compare junction numbers, favor fewer junctions
 	//return a->junctions->size() < b->junctions->size() ? true: false;
-	return a->logit_score > b->logit_score ?  true: false;
+	return a->logistic_prob > b->logistic_prob ?  true: false;
 }
 
 
@@ -3207,7 +3207,7 @@ void jigsaw_search_exonic_aln (jigsaw_spliced_aln_cluster_t *clust, bwa_seq_t *s
 		curr_aln->n_gapo_q = p->n_gapo_q;
 		curr_aln->n_gape_q = p->n_gape_q;
 		curr_aln->diff =curr_aln->n_mm + curr_aln->n_gapo_t + curr_aln->n_gape_t + curr_aln->n_gapo_q + curr_aln->n_gape_q;
-		curr_aln->logit_score = 1.0;
+		curr_aln->logistic_prob = 1.0;
 		aln->push_back(curr_aln);			  
 	      }
 	}
@@ -3560,7 +3560,7 @@ void jigsaw_aln_one_spliced (bwt_t *const bwt[2], bwa_seq_t *seq, const int *g_l
 			&& (*aln_iter)->diff <= opt->max_diff
 			&& (uint32_t)((*aln_iter)->n_gapo_t + (*aln_iter)->n_gapo_q) <= opt->max_gapo
 			&& (uint32_t)((*aln_iter)->n_gapo_t + (*aln_iter)->n_gapo_q + (*aln_iter)->n_gape_t + (*aln_iter)->n_gape_q) <= opt->max_gape
-			&& (*aln_iter)->logit_score > opt->min_logit_score;
+			&& (*aln_iter)->logistic_prob > opt->min_logistic_prob;
 			++aln_iter, ++i) ;
 
 		seq->c1 = i;
@@ -3570,7 +3570,7 @@ void jigsaw_aln_one_spliced (bwt_t *const bwt[2], bwa_seq_t *seq, const int *g_l
 			&& (*aln_iter)->diff <= opt->max_diff
 			&& (uint32_t)((*aln_iter)->n_gapo_t + (*aln_iter)->n_gapo_q) <= opt->max_gapo
 			&& (uint32_t)((*aln_iter)->n_gapo_t + (*aln_iter)->n_gapo_q + (*aln_iter)->n_gape_t + (*aln_iter)->n_gape_q) <= opt->max_gape
-			&& (*aln_iter)->logit_score > opt->min_logit_score;
+			&& (*aln_iter)->logistic_prob > opt->min_logistic_prob;
 			++aln_iter, ++i) ;
 
 		seq->c2 = i - seq->c1;

@@ -13,6 +13,11 @@
 #include "bwtgap.h"
 #include "utils.h"
 
+#ifndef PACKAGE_VERSION
+#define PACKAGE_VERSION "1.0"
+#endif
+
+
 int main (int argc, char *argv[])
 {
 	int c, opte = -1;
@@ -75,12 +80,12 @@ int main (int argc, char *argv[])
 			{"junction-file",	required_argument, 	0, 'j'},
 			{"non-denovo",      no_argument,        0, 'n'},
 			{"num-threads",		required_argument, 	0, 't'},
-			{"best",		no_argument,		0, 'b'},
+//			{"best",		no_argument,		0, 'b'},
 			{"single-anchor",	no_argument,		0, 's'},
 			{"verbose",			no_argument, 		0, 'v'},
 
 			/*advanced options*/
-			{"min-logit-score",         required_argument,      0, 0},
+			{"min-logistic-prob",         required_argument,      0, 0},
 			{"max-overhang",    required_argument,  0, 0},
 			{"max-gapo", 		required_argument, 	0, 0},
 			{"max-gape", 		required_argument, 	0, 0},
@@ -177,8 +182,8 @@ int main (int argc, char *argv[])
 			else if (strcmp (long_options[option_index].name, "none-stop" ) == 0) {
 				opt->mode |= BWA_MODE_NONSTOP; opt->max_top2 = 0x7fffffff;
 			}
-			else if (strcmp (long_options[option_index].name, "min-logit-score") == 0 ) {
-				opt->min_logit_score = atof (optarg);
+			else if (strcmp (long_options[option_index].name, "min-logistic-prob") == 0 ) {
+				opt->min_logistic_prob = atof (optarg);
 			}
 
 			//	int tmp = optarg;
@@ -195,7 +200,14 @@ int main (int argc, char *argv[])
 	}
 
 	if (optind + 2 > argc) {
-		fprintf(stderr, "Usage:   olego [options] <prefix> <in.fastx>\n");
+		fprintf(stderr, "\nOLego: version %s\n", PACKAGE_VERSION);
+		fprintf(stderr, "Compiled at %s, %s\n", __TIME__, __DATE__);
+		fprintf(stderr, "Usage:   olego [options] <prefix> <in.fastx>\n\n");
+
+		fprintf(stderr, "[Arguments]\n");
+		fprintf(stderr, "<prefix>	The base name of the reference sequence index.\n");
+		fprintf(stderr, "<in.fastx>	Fasta or fastq input file.\n");
+		
 		/*
 		fprintf(stderr, "[\ninput options]\n");
 		fprintf(stderr, " -c,--color-space             input sequences are in the color space\n");
@@ -205,54 +217,54 @@ int main (int argc, char *argv[])
 		fprintf(stderr, " -2,--read2                   use the 2nd read in a pair (effective with -b)\n");
 		fprintf(stderr, " -r,--rg-line          TXT    RG line\n");
 		*/
-		fprintf(stderr, "Compiled at %s, %s\n", __TIME__, __DATE__);
+
 		fprintf(stderr, "\n[basic options]\n");
-		fprintf(stderr, " -o,--output-file      FILE   file to write output to instead of stdout\n");
-		fprintf(stderr, " -M,--max-total-diff   INT    max #diff (int)[%d] or missing prob under %.2f err rate (float) [%.2f]\n",
-				opt->max_diff, BWA_AVG_ERR, opt->fnr);
-		fprintf(stderr, " -w,--word-size        INT    word size to seed alignment of spliced reads [%d]\n", opt->word_size);
-		fprintf(stderr, " -W,--max-word-occ     INT    max word occurrence to serve as a seed [%d]\n", opt->max_word_occ);
-		fprintf(stderr, " -m,--max-word-diff    INT    max #diff allowed in words [%d]\n", opt->max_word_diff);
-		fprintf(stderr, " -I,--max-intron       INT    max intron size for de novo search [%d]\n", opt->max_intron_size);
-		fprintf(stderr, " -i,--min-intron       INT    min intron size for de novo search [%d]\n", opt->min_intron_size);
-		fprintf(stderr, " -e,--min-exon         INT    minimum exon size [%d]\n", opt->min_exon_size);
-		fprintf(stderr, " -a,--min-anchor       INT    min anchor on both sides of an exon junction [%d]\n", opt->min_anchor);
-		fprintf(stderr, " -k,--known-junc-min-anchor	INT min anchor on both sides of an known exon junction [%d]\n",opt->known_junc_min_anchor);
-		fprintf(stderr, " -b,--best                    only report the best alignments\n");
-		fprintf(stderr, " -s,--single-anchor           allow single anchor de-novo junction search\n");
-		fprintf(stderr, " -r,--regression-model FILE   the file with the logit regression model\n");
-		fprintf(stderr, " -j --junction-file    FILE   exon junction BED file\n");
-		fprintf(stderr, " -n,--non-denovo              only search known junctions, must turn on -j\n");
-		fprintf(stderr, " -t,--num-threads      INT    number of threads [%d]\n", opt->n_threads);
-		fprintf(stderr, " -v,--verbose                 verbose mode\n");
+		fprintf(stderr, " -o,--output-file      FILE   Output file [stdout]\n");
+		fprintf(stderr, " -s,--single-anchor           Enable single-anchor de novo junction search [disabled]\n");
+		fprintf(stderr, " -j --junction-file    FILE   BED file for known junctions \n");
+		fprintf(stderr, " -n,--non-denovo              Disable de novo junction search \n");
+		fprintf(stderr, " -t,--num-threads      INT    Number of threads [%d]\n", opt->n_threads);
+		fprintf(stderr, " -r,--regression-model FILE   The file with the logistic regression model\n");
+		fprintf(stderr, " -M,--max-total-diff   INT    Max #diff (int)[%d] or missing prob under %.2f err rate (float) [%.2f]\n",opt->max_diff, BWA_AVG_ERR, opt->fnr);
+		fprintf(stderr, " -w,--word-size        INT    Seed size in junction search [%d]\n", opt->word_size);
+		fprintf(stderr, " -W,--max-word-occ     INT    Max #occurrence of a seed to be used in the further steps  [%d]\n", opt->max_word_occ);
+		fprintf(stderr, " -m,--max-word-diff    INT    Max #diff allowed a seed [%d]\n", opt->max_word_diff);
+		fprintf(stderr, " -I,--max-intron       INT    Max intron size for de novo search [%d]\n", opt->max_intron_size);
+		fprintf(stderr, " -i,--min-intron       INT    Min intron size for de novo search [%d]\n", opt->min_intron_size);
+		fprintf(stderr, " -e,--min-exon         INT    Min exon size [%d]\n", opt->min_exon_size);
+		fprintf(stderr, " -a,--min-anchor       INT    Min anchor size in de novo single anchor junction search [%d]\n", opt->min_anchor);
+		fprintf(stderr, " -k,--known-junc-min-anchor	INT Min anchor size for a known junction [%d]\n",opt->known_junc_min_anchor);
+//		fprintf(stderr, " -b,--best                    only report the best alignments\n");
+		fprintf(stderr, " -v,--verbose                 Verbose mode\n");
 
 		fprintf(stderr, "\n[advanced options]\n");
-		fprintf(stderr, " --min-logit-score     FLOAT  logit score of splice sites motif and intron size, in the range of [0,1) [%.2f]\n", opt->min_logit_score);
-		fprintf(stderr, " --max-overhang        INT    maximum number or overhanging nucleotide allowed near junctions [%d]\n", opt->max_overhang);
-		fprintf(stderr, " --max-gapo            INT    maximum number or fraction of gap opens [%d]\n", opt->max_gapo);
-		fprintf(stderr, " --max-gape            INT    maximum number of gap extensions, -1 for disabling long gaps [-1]\n");
-		fprintf(stderr, " --indel-end-skip      INT    do not put an indel within INT bp towards the ends [%d]\n", opt->indel_end_skip);
-		fprintf(stderr, " --gape-max-occ        INT    maximum occurrences for extending a long deletion [%d]\n", opt->max_del_occ);
-		fprintf(stderr, " --penalty-mismatch    INT    mismatch penalty [%d]\n", opt->s_mm);
-		fprintf(stderr, " --penalty-gapo        INT    gap open penalty [%d]\n", opt->s_gapo);
-		fprintf(stderr, " --penalty-gape        INT    gap extension penalty [%d]\n", opt->s_gape);
-		fprintf(stderr, " --log-gap                    log-scaled gap penalty for long deletions\n");
-		fprintf(stderr, " --max-entries         INT    maximum entries in the queue [%d]\n", opt->max_entries);
-		fprintf(stderr, " --repeat              INT    stop searching when there are >INT equally best hits [%d]\n", opt->max_top2);
-		fprintf(stderr, " --none-stop                  non-iterative mode: search for all n-difference hits (slooow)\n");
+		fprintf(stderr, " --min-logistic-prob   FLOAT  Min logistic probability required for an alignment, in the range of [0,1) [%.2f]\n", opt->min_logistic_prob);
+		fprintf(stderr, " --max-overhang        INT    Max # of overhanging nucleotide allowed near junctions [%d]\n", opt->max_overhang);
+		fprintf(stderr, " --max-gapo            INT    Max number or fraction of gap opens [%d]\n", opt->max_gapo);
+		fprintf(stderr, " --max-gape            INT    Max number of gap extensions, -1 for disabling long gaps [-1]\n");
+		fprintf(stderr, " --indel-end-skip      INT    Do not put an indel within INT nt towards the ends [%d]\n", opt->indel_end_skip);
+		fprintf(stderr, " --gape-max-occ        INT    Max # occurrences for extending a long deletion [%d]\n", opt->max_del_occ);
+		fprintf(stderr, " --penalty-mismatch    INT    Mismatch penalty [%d]\n", opt->s_mm);
+		fprintf(stderr, " --penalty-gapo        INT    Gap open penalty [%d]\n", opt->s_gapo);
+		fprintf(stderr, " --penalty-gape        INT    Gap extension penalty [%d]\n", opt->s_gape);
+		fprintf(stderr, " --log-gap                    Log-scaled gap penalty for long deletions\n");
+		fprintf(stderr, " --max-entries         INT    Max entries in the queue [%d]\n", opt->max_entries);
+//		fprintf(stderr, " --repeat              INT    stop searching when there are >INT equally best hits [%d]\n", opt->max_top2);
+		fprintf(stderr, " --none-stop                  Non-iterative mode: search for all n-difference hits (slooow)\n");
 
 		//fprintf(stderr, "         -q INT    quality threshold for read trimming down to %dbp [%d]\n", BWA_MIN_RDLEN, opt->trim_qual);
 		//fprintf(stderr, "         -l INT    seed length [%d]\n", opt->seed_len);
 		//fprintf(stderr, "         -k INT    maximum differences in the seed [%d]\n", opt->max_seed_diff);
 
 		fprintf(stderr, "\n");
+		fprintf(stderr, "Please find detailed manual in README or online at http://ngs-olego.sourceforge.net/doc/\n\n");
 		return 1;
 	}
 	if (opt->fnr > 0.0) {
 		int i, k;
 		for (i = 17, k = 0; i <= 250; ++i) {
 			int l = bwa_cal_maxdiff(i, BWA_AVG_ERR, opt->fnr);
-			if (l != k) fprintf(stderr, "[olego_aln] %dbp reads: max_diff = %d\n", i, l);
+			if (l != k) fprintf(stderr, "[olego_aln] %dnt reads: max_diff = %d\n", i, l);
 			k = l;
 		}
 	}

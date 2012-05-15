@@ -84,7 +84,7 @@ typedef struct {
 	int64_t start_t, end_t, start_q, end_q;
 	//the last/first nucleotide of the upstream/downstream exon
 
-	double logit_score;
+	double logistic_prob;
 	//the logit score for the junction
 } jigsaw_junction_t;
 
@@ -98,7 +98,7 @@ typedef struct {
 	//strand and sense_strand might be different depending on whether the RNA-seq protocol have strand information
 
 	int64_t start_q, start_t, end_q, end_t;
-	double logit_score;
+	double logistic_prob;
 
 	list<jigsaw_junction_t*> *junctions; //shallow copy of junctions
 } jigsaw_spliced_aln_t;
@@ -241,7 +241,7 @@ typedef struct {
 	uint32_t single_anchor_search;
 	uint32_t non_denovo_search;
 	uint32_t report_best_only;
-	double min_logit_score;
+	double min_logistic_prob;
 } gap_opt_t;
 
 #define BWA_PET_STD   1

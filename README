@@ -1,22 +1,33 @@
-OLego -- a NGS mapping tool for short or long reads to discover exon junction
+OLego -- short or long RNA-seq read mapping to discover exon junction
 
 Jie Wu (wuj@cshl.edu), Chaolin Zhang (czhang@rockefeller.edu)
 
-Aug 21 2011
+May 15 2012
 
-This is an initial version of the manual, please check back often for updates! 
+This is an initial version of the manual and please check regularly for updates! 
+
 
 What is OLego?
 ======================
 
-OLego is a program specifically designed for de novo spliced mapping of mRNA-seq reads. OLego adopts a seeding and extension scheme, and does not rely on a separate external mapper. It achieves high sensitivity of junction detection by using very small seeds (12-14 nt), efficiently mapped using Burrows-Wheeler transform (BWT) and FM-index. This also makes it particularly sensitive for discovering small exons. It is implemented in C++ with full support of multiple threading, to allow fast processing of large-scale data.
+OLego is a program specifically designed for de novo spliced mapping of mRNA-seq reads. OLego adopts a seed-and-extend scheme, and does not rely on a separate external mapper. It achieves high sensitivity of junction detection by strategic searches with very small seeds (12-14 nt), efficiently mapped using Burrows-Wheeler transform (BWT) and FM-index. This also makes it particularly sensitive for discovering small exons. It is implemented in C++ with full support of multiple threading, to allow for fast processing of large-scale data.
 
-OLego uses some source code from Kent (http://genomewiki.ucsc.edu/index.php/Kent_source_utilities) and was rewritten from BWA (http://bio-bwa.sourceforge.net/). It is an open source code project and released under GPLv3. 
+OLego is an open source code project and released under GPLv3. The implementation of OLego relies heavily on BWA (version 0.5.9rc1, http://bio-bwa.sourceforge.net/).  It also uses some source code from the Jim Kent source code tree (http://genome.ucsc.edu/admin/git.html). 
 
 Prerequisites
 ======================
 
-The major programs of OLego (olego and olegoindex ) can be installed and ran on Unix-based system with GCC compiler installed. We provided set of scripts for post analysis and regression model construction, these codes may require Perl and R installed. 
+<<<<<<< HEAD
+The major programs of OLego (olego and olegoindex ) can be installed and ran on Unix-based system (Linux or MacOS) with GCC compiler installed. We provided set of scripts for post analysis and regression model construction, these codes may require Perl and R. 
+
+Download
+======================
+
+The code and binary files can be found at http://sourceforge.net/projects/ngs-olego/files/ , we are regularly updating the code, so please check back often to keep your code updated. The code can also be reached via git::
+
+	git clone git://git.code.sf.net/p/ngs-olego/code ngs-olego-code
+
+The main programs of OLego (olego and olegoindex ) can be installed and run on Unix-based system with GCC compiler installed. We also provide set of scripts for post analysis and regression model construction. These codes may require Perl and R installed. 
 
 Installation
 ======================
@@ -27,6 +38,8 @@ To compile OLego on your computer, please go to the OLego directory and type::
 
 If everything goes right, you will find two executable files olegoindex and olego in the folder.
 
+We also provide binary executable files at http://sourceforge.net/projects/ngs-olego/files/ for x86_64 and i686 Linux system. 
+
 Please feel free to report any problems you come up with.
 
 
@@ -36,27 +49,30 @@ Usage
 Build the index for the genome sequence
 ----------------------------------------
 
-To run OLego, you need a BWT index for the reference sequences, you can build the index with olegoindex::
+To run OLego, you need a BWT index for the reference sequences. We use exactly the same genome index used by BWA.  For your convience, you can build the index with olegoindex that comes with this package::
 
 	olegoindex [-a bwtsw|div|is] [-c] <in.fasta>
 
 Arguments:
 
-	<in.fasta>  This is the fasta format file with the reference sequence. Please put all the sequences (from different chromosomes ) in a single file.
+	==========  ========================================================================
+	<in.fasta>  This is the fasta format file with the reference sequence. Please put 
+		    all the sequences (from different chromosomes ) in a single file.
+	==========  ========================================================================
 	
 Options:
 
     ========    ==================================================================	
     Option	Description
     ========    ==================================================================
-    -a		BWT construction algorithm: bwtsw or is [default: is]
+    -a		BWT construction algorithm: bwtsw or is [default: bwtsw]
     -p		prefix of the index [default: the same as the fasta file name]
     -c		build color-space index
     ========    ==================================================================
 	
 Caution: please use "-a bwtsw" for long genome (like human or mouse genome).
 
-There will be 8 files (prefix.pac, prefix.ann, prefix.amb, prefix.rpac, prefix.bwt, prefix.rbwt, prefix.sa, prefix.rsa ) generated after olegoindex finished.
+There will be 8 files (prefix.pac, prefix.ann, prefix.amb, prefix.rpac, prefix.bwt, prefix.rbwt, prefix.sa, prefix.rsa ) generated after olegoindex finishes.
 
 Running OLego
 ----------------------
@@ -73,77 +89,88 @@ Arguments:
     =========== =============================================================================================
     Argument	Description
     ===========	=============================================================================================	
-    <prefix>	The base name of the genome sequence index. Please include the path to the index folder i
-		to make sure that the program can find the index files.
+    <prefix>	The prefix of the genome sequence index, including the path and the base name. 
     <in.fastx>	Either fasta or fastq file would work as input.
     ===========	=============================================================================================
 
-Basic options
+Basic options:
 ^^^^^^^^^^^^^^^^^^^^^^
 
     =====================   ===========================================================================
     Options		    Descriptions
     =====================   ===========================================================================
     -o,--output-file	    Name of the output file [ default: stdout ]. This file will be in SAM
-			    format, with the same tags used by BWA. Please look for the details 
-			    below.
-    -M,--max-total-diff	    Maximum total difference between query read and reference sequences. 
+			    format, with some customized tags. Please see the details of the file
+			    format below. 
+    -s,--single-anchor	    Enable single-anchor de-novo junction search. [ default: disabled ].
+    -j --junction-file	    Annotation file for known exon junctions. It is in BED format and please 
+			    see the junc format description below. 
+    -n,--non-denovo	    No de novo junction search. Note that if junction annotation file is 
+			    provided by -j, these "known" junctions will still be searched. 
+    -t,--num-threads	    Number of threads (INT) [ default: 1 ]. OLego fully supports multiple
+			    threading, if you have multiple CPU cores on your computer, please 
+			    specify the number of CPUs you want to use with this option. 
+    -r,--regression-model   The file with the parameters for the logistic regression model. The mouse 
+			    model will be used if no file is selected. The model file contains the 
+			    parameters for the regression model (the coefficients, the PWM and the 
+			    background ). We have provided model files for mouse and human. User-defined
+			    model can also be generated with the regression_model_gen for any species.
+			    Please see the usage below. 
+    -M,--max-total-diff	    Maximum total difference between query read and reference sequence. 
 			    Either INT or FLOAT number can be used for this option. An INT number 
 			    will specify the maximum total edit distance allowed for each alignment 
-			    [ default: 4 ]. An FLOAT number will specify the fraction of missing 
-			    alignments given 2% uniform base error rate [default: 0.04 ]. These 
+			    [ default: 4 ]. A FLOAT number will specify the fraction of missing 
+			    alignments given 2% uniform base error rate [default: 0.04 ]. This
 			    parameter is the same as -n in BWA. 
-    -w,--word-size	    The size of the seed used in junction mapping (int) [ default: 14 ]. 
-			    The default seed size is recommanded for reads >100 nt. For shorter
-			    reads, a smaller number can be used. 
-    -W,--max-word-occ	    Maximum number of the occurrence a seed to be used in the further 
-			    steps (int) [ default 1000]. If a seed has more than this number of 
-			    hits found in the genome, it will be considerred repeptive and all 
-			    of its hits will be discarded. 
-    -m,--max-word-diff	    Maximum edit distance allowed in each seed (int) [ default: 0 ]. 
+    -w,--word-size	    The size of the seed used in junction search (INT) [ default: 14 ]. 
+			    The default seed size is recommended for reads >100 nt. For shorter
+			    reads, a smaller number can be used. e.g., 12 nt for 36 nt reads. The 
+			    seeds will be evenly distributed on the read from the start to the end,
+			    so please try to cover the read as much as possible with a reasonable 
+			    seed size. (13 nt for 36 nt reads is a BAD example. )
+    -W,--max-word-occ	    Maximum number of matches of a seed (INT) [ default: 1000]. If a seed has
+			    more than this number of hits on the genome, then it will be considerred 
+			    repeptive and all of its hits will be discarded. 
+    -m,--max-word-diff	    Maximum edit distance allowed for each seed (INT) [ default: 0 ]. 
 			    Since our seed size is smaller than other programs, we recommend that 
 			    the user use a small number for this option.  
-    -I,--max-intron	    Maximum intron size for de novo junction search (int) [ default: 500000 ].
-    -i,--min-intron	    Minimum intron size for de novo junction search (int) [ default: 20 ].
-    -e,--min-exon	    Minimum micro-exon size to be searched (int) [ default: 9 ].
-    -a,--min-anchor	    Minimum anchor size in de novo single anchor junction searches (int) 
+    -I,--max-intron	    Maximum intron size for de novo junction search (INT) [ default: 500000 ].
+    -i,--min-intron	    Minimum intron size for de novo junction search (INT) [ default: 20 ].
+    -e,--min-exon	    Minimum micro-exon size to be searched (INT) [ default: 9 ].
+    -a,--min-anchor	    Minimum anchor size in de novo single anchor junction searches (INT) 
 			    [ default: 8 ]. We define "anchor size" as the smaller number of matched 
 			    nucleotides on the read at the end of the junction. 
-    -k,--known-min-anchor   Minimum anchor size in single anchor junction searches when the junction
-			    is known (int) [ default: 5 ].
-    -b,--best		    Only report the best alignments. 
-    -s,--single-anchor	    Allow single anchor de-novo junction search. [ default: false ].
-    -j --junction-file	    BED file for known exon junctions. Please see the junc format 
-			    description below
-    -n,--non-denovo	    No de novo junction search. If this option is sepcified, only known 
-			    junctions will be searched. 
-    -t,--num-threads	    Number of threads (int) [ default: 1 ].
+    -k,--known-min-anchor   Minimum anchor size in single-anchor junction searches when the junction
+			    is in the annotation file specified by -j (INT) [ default: 5 ].
     -v,--verbose	    Verbose mode [ default: false ].
     =====================   ===========================================================================
 
-Advanced options
+Advanced options:
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
     ======================  =================================================================================
     Option		    Description
     ======================  =================================================================================
-    --min-logit-score	    logit score of splice sites motif and intron size, in the range of 
-			    [0,1) [0.50]
-    --max-overhang	    Maximum number or overhanging nucleotide allowed near junctions (int) 
-			    [ default: 6 ]. After we extend the candidate exons, we search for 
-			    splice site in the overhanging regions around the candidate exon boundary. 
-    --max-gapo		    Maximum number of gap opens (int) [ default: 1 ].
-    --max-gape		    Maximum number of gap extensions, -1 for disabling long gaps (int) 
-			    [ default: -1 ]. 
-    --indel-end-skip	    In BWT querying, do not put an indel within this number towards the ends [ default: 5 ].
-    --gape-max-occ	    Mmaximum occurrences for extending a long deletion in BWT querying [ default: 10 ]. 
-    --penalty-mismatch	    Mismatch penalty [ default: 3 ] #TODO check all options below later
-    --penalty-gapo	    Gap open penalty [ default: 11 ]
-    --penalty-gape	    Gap extension penalty [ default: 4 ]
-    --log-gap		    log-scaled gap penalty for long deletions
-    --max-entries	    Maximum entries in the queue [2000000]
-    --repeat		    Stop searching when there are >INT equally best hits [30]
-    --none-stop             non-iterative mode: search for all n-difference hits (slooow)
+    --min-logistic-prob	    Minimum logistic probablity for an alignment, calculated with the splice sites
+			    motif and intron size, in the range of [0,1) [ default: 0.50]. A higher number
+			    means more stringent filter, we don't recommend using high value since more true
+			    de novo junctions will be filtered out. 
+    --max-overhang	    Maximum number of overhanging nucleotides allowed near the candidate exon 
+			    boundary in junction searches (INT) [ default: 6 ]. After we extend the candidate 
+			    exons, we search for splice sites in the overhanging regions around the candidate 
+			    exon boundary. 
+    --max-gapo		    Maximum number of gap opens (INT) [ default: 1 ].
+    --max-gape		    Maximum number of gap extensions, -1 for disabling long gaps (INT)[ default: -1 ]. 
+    --indel-end-skip	    In BWT querying, do not put an indel within this number towards the ends 
+			    [ default: 5 ].
+    --gape-max-occ	    Maximum occurrences for extending a long deletion in BWT querying [ default: 10 ]. 
+    --penalty-mismatch	    Mismatch penalty for querying involving BWT [ default: 3 ].
+    --penalty-gapo	    Gap open penalty for querying involving BWT [ default: 11 ]
+    --penalty-gape	    Gap extension penalty for querying involving BWT [ default: 4 ]
+    --log-gap		    log-scaled gap penalty for long deletions for querying involving BWT. 
+    --max-entries	    Maximum entries in the queue [2000000]. This number of reads will be loaded into
+			    the memory for processing. 
+    --none-stop             non-iterative mode: search for all n-difference hits in the BWT query (slooow).
     ======================  =================================================================================
 
 Other useful scripts
@@ -152,7 +179,11 @@ Other useful scripts
 mergePEsam.pl
 ^^^^^^^^^^^^^^^^^^^^^
 
-This script can be used to merge SAM format mapping results from paired end reads. The two ends will be merged according to their distances. The script requires the two ends come from the same chromosome and the distance between them smaller than the threshold specified by option -d.   
+<<<<<<< HEAD
+This script can be used to merge SAM format mapping results from paired end reads. The two ends will be merged according to their distances on the reference. The script requires the two ends come from the same chromosome and the distance between them smaller than the threshold specified by option -d.   
+=======
+This script can be used to merge SAM format mapping results from paired-end reads. The two ends will be merged according to their distances and orientation. The script requires the two ends come from the same chromosome with proper orientation and the distance between them smaller than the threshold specified by option -d.   
+>>>>>>> 4259de9fc83afa595e08772a6a012090537b5ae7
 
 Usage::
 
@@ -167,20 +198,22 @@ Arguments:
     <end2.sam>	The SAM format output from the other end of the reads. Please make sure 
 		the same lines in end1.sam and end2.sam are corresponded (i.e. from the 
 		same read pair ). 
-    <out.sam>	The output file. In SAM format, sorted by the read names.
+    <out.sam>	The output file. In SAM format.
     ===========	==========================================================================
     
 Options:
 
     ======  ==============================================================================
-    -d	    Maximum distance between the two ends on genome [ default:5000000 ].
-    -v	    verbose.
+    Option  Description
+    ======  ==============================================================================
+    -d	    Maximum distance between the two ends on the reference [ default:5000000 ].
+    -v	    Verbose.
     ======  ==============================================================================
 
 xa2multi.pl
 ^^^^^^^^^^^^^^^^^^^^^
 
-This script can be used to extract all the alignments after XA in each line. The current version is from BWA package, to be improved later. 
+This script can be used to extract all the alignments after the tag "XA" in each line. The current version is from BWA package, to be improved later. 
 
 Usage::
 	
@@ -190,13 +223,29 @@ Usage::
 sam2bed.pl
 ^^^^^^^^^^^^^^^^^^^^^
 
-This script converts SAM format output from OLego into BED format file. Only the best alignment of each read will be used. 
+This script converts SAM format output from OLego into BED format file. Only the best alignment (major alignment) of each read will be used. 
+
+Usage::
+	
+	perl sam2bed.pl [options] <in.sam> <out.bed>
+
+Options:
+
+    ==========  =============================================================================
+    Option      Description
+    ==========  =============================================================================
+    -uniq	Only output uniquely mapped reads. The script identifies unique reads
+		by the tag "XT:A:U".
+    -v		Verbose.
+    ==========  =============================================================================    
+
+Using this script to convert SAM outputs from other programs might cause problems! 
 
 
 bed2junc.pl
 ^^^^^^^^^^^^^^^^^^^^^
 
-This script can be used to retrieve junctions from BED format file. The number of supporting reads of each junction will be in the score (5th) column. The output file can be used as annotation file for OLego (option -j).
+This script can be used to retrieve unique junctions from BED format file. The number of supporting reads of each junction will be in the score (5th) column. The output file can be used as annotation file for OLego (option -j).
 
 Usage::
 	
@@ -215,7 +264,7 @@ Arguments:
 regression_model_gen
 ^^^^^^^^^^^^^^^^^^^^^
 
-This set of scripts can be used to generate the user defined logistic regression model. 
+This set of scripts can be used to generate the user-defined logistic regression model. 
 
 Usage::
 
@@ -224,9 +273,9 @@ Usage::
 Options:
 
 	========    ==============================================================
-	Options	    Description
+	Option	    Description
 	========    ==============================================================
-        -g	    The location of the fasta files downloaded from UCSC genome 
+        -g	    The location of the Fasta files downloaded from UCSC genome 
 		    browser, the names of the Fasta files should be something 
 		    like chr1.fa etc.
         -a	    BED format annotation files for the true transcripts. True 
@@ -234,7 +283,7 @@ Options:
         -o	    Output prefix [default: userdefined].
 	========    ==============================================================
 
-The model file will be generated in output_prefix.cache/output_prefix.cfg. 
+The model file will be generated in output_prefix.cache, the file name would be output_prefix.cfg. 
 				
 
 Additional notes
@@ -248,7 +297,7 @@ SAM format
 
 OLego outputs the alignments in SAM format (http://samtools.sourceforge.net). Its specification can be found on samtools' website. 
 
-The following tags are used in OLego. Please pay attention to the X? tags, most of them were adapted from BWA, except XS:
+The following tags are used in OLego. Please pay attention to the X? tags, most of them were adopted from BWA, except XS:
 
     ===	===================================================
     Tag	Meaning
@@ -272,10 +321,10 @@ For general processing of SAM files, please check SAMTools.
 junc format
 ^^^^^^^^^^^^^^^^^^^^^
 
-OLego takes junction annotations in junc format:
+OLego takes junction annotations in junc (BED) format.
     
     =============   ======  ===================================================
-    Column number   Name    Description
+    Column	    Name    Description
     =============   ======  ===================================================
     1		    chrom   The name of the chromosome
     2		    start   The starting position of the junction (intron)
@@ -286,6 +335,8 @@ OLego takes junction annotations in junc format:
 			    evidence number in this column. 
     6		    strand  Strand of the junction
     =============   ======  ===================================================
+
+The score column is not essential.
 
 Examples
 =====================
