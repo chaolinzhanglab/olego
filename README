@@ -17,8 +17,7 @@ OLego is an open source code project and released under GPLv3. The implementatio
 Prerequisites
 ======================
 
-<<<<<<< HEAD
-The major programs of OLego (olego and olegoindex ) can be installed and ran on Unix-based system (Linux or MacOS) with GCC compiler installed. We provided set of scripts for post analysis and regression model construction, these codes may require Perl and R. 
+The main programs of OLego (olego and olegoindex ) can be installed and ran on Unix-based system (Linux or MacOS) with GCC compiler installed. We provided set of scripts for post analysis and regression model construction, these codes may require Perl and R. 
 
 Download
 ======================
