@@ -17,7 +17,7 @@ OLego is an open source code project and released under GPLv3. The implementatio
 Prerequisites
 ======================
 
-The main programs of OLego (olego and olegoindex ) can be installed and ran on Unix-based system (Linux or MacOS) with GCC compiler installed. We provided set of scripts for post analysis and regression model construction, these codes may require Perl and R. 
+The major programs of OLego (olego and olegoindex ) can be installed and ran on Unix-based system (Linux or MacOS) with GCC compiler installed. We provided set of scripts for post analysis and regression model construction, these codes may require Perl and R. 
 
 Download
 ======================
@@ -178,11 +178,7 @@ Other useful scripts
 mergePEsam.pl
 ^^^^^^^^^^^^^^^^^^^^^
 
-<<<<<<< HEAD
-This script can be used to merge SAM format mapping results from paired end reads. The two ends will be merged according to their distances on the reference. The script requires the two ends come from the same chromosome and the distance between them smaller than the threshold specified by option -d.   
-=======
 This script can be used to merge SAM format mapping results from paired-end reads. The two ends will be merged according to their distances and orientation. The script requires the two ends come from the same chromosome with proper orientation and the distance between them smaller than the threshold specified by option -d.   
->>>>>>> 4259de9fc83afa595e08772a6a012090537b5ae7
 
 Usage::
 
