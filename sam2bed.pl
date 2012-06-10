@@ -13,17 +13,20 @@ my $prog = basename ($0);
 my $pairedEnd = 0;
 my $printUniqOnly = 0;
 my $verbose = 0;
+my $useReadStrand = 0; # use the strand of the read instead of the RNA
 
-
-GetOptions ("uniq"=>\$printUniqOnly,
-		"v|verbose"=>\$verbose);
+GetOptions (
+	"uniq"=>\$printUniqOnly,
+	"use-read-strand"=>\$useReadStrand,    
+	"v|verbose"=>\$verbose);
 
 if (@ARGV != 2 && @ARGV != 3)
 {
 	print "Converts OLego SAM format to BED format, works for paired end data and saves into a single BED file, only reports the major alignments. \n";
 	print "Usage: $prog [options] <in.sam> <out.bed>\n";
 	#print " -p: paired-end data\n";
-	print " -uniq : print uniquely mapped reads only\n";
+	print "--uniq : print uniquely mapped reads only\n";
+	print "--use-read-strand: force to use the strand of the read, \n";
 	print " -v    : verbose\n";
 	exit (1);
 }
@@ -70,6 +73,14 @@ while (my $line = <$fin>)
 	#next unless $flagInfo->{'query_map'};
 
 	my $strand = $flagInfo->{'query_strand'};
+	if(!$useReadStrand)
+	{
+	    if ($TAG=~/XS\:\S*\:([-+\.])/)
+	    {
+		$strand = $1;
+		$strand = '+' if ($1 eq '.');
+	    }
+	}
 	my $read1_or_2 = $flagInfo->{'read_1_or_2'};
 
 	my $name = $QNAME; #substr ($QNAME, 1);

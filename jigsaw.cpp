@@ -14,7 +14,7 @@
 #include "utils.h"
 
 #ifndef PACKAGE_VERSION
-#define PACKAGE_VERSION "1.0.0"
+#define PACKAGE_VERSION "1.0.3"
 #endif
 
 
@@ -85,6 +85,7 @@ int main (int argc, char *argv[])
 			{"verbose",			no_argument, 		0, 'v'},
 
 			/*advanced options*/
+			{"strand-mode",         required_argument,      0, 0},
 			{"min-logistic-prob",         required_argument,      0, 0},
 			{"max-overhang",    required_argument,  0, 0},
 			{"max-gapo", 		required_argument, 	0, 0},
@@ -185,6 +186,9 @@ int main (int argc, char *argv[])
 			else if (strcmp (long_options[option_index].name, "min-logistic-prob") == 0 ) {
 				opt->min_logistic_prob = atof (optarg);
 			}
+			else if (strcmp (long_options[option_index].name, "strand-mode") == 0) {
+				opt->strand_mode = atoi (optarg);
+			}
 
 			//	int tmp = optarg;
 			//}
@@ -221,7 +225,7 @@ int main (int argc, char *argv[])
 		fprintf(stderr, "\n[basic options]\n");
 		fprintf(stderr, " -o,--output-file      FILE   Output file [stdout]\n");
 		fprintf(stderr, " -s,--single-anchor           Enable single-anchor de novo junction search [disabled]\n");
-		fprintf(stderr, " -j --junction-file    FILE   BED file for known junctions \n");
+		fprintf(stderr, " -j,--junction-file    FILE   BED file for known junctions \n");
 		fprintf(stderr, " -n,--non-denovo              Disable de novo junction search \n");
 		fprintf(stderr, " -t,--num-threads      INT    Number of threads [%d]\n", opt->n_threads);
 		fprintf(stderr, " -r,--regression-model FILE   The file with the logistic regression model\n");
@@ -238,6 +242,7 @@ int main (int argc, char *argv[])
 		fprintf(stderr, " -v,--verbose                 Verbose mode\n");
 
 		fprintf(stderr, "\n[advanced options]\n");
+		fprintf(stderr, " --strand-mode		INT    Strand searching mode, 1:forward, 2: reverse, 3 both. [%d]\n", opt->strand_mode);
 		fprintf(stderr, " --min-logistic-prob   FLOAT  Min logistic probability required for an alignment, in the range of [0,1) [%.2f]\n", opt->min_logistic_prob);
 		fprintf(stderr, " --max-overhang        INT    Max # of overhanging nucleotide allowed near junctions [%d]\n", opt->max_overhang);
 		fprintf(stderr, " --max-gapo            INT    Max number or fraction of gap opens [%d]\n", opt->max_gapo);
@@ -268,7 +273,7 @@ int main (int argc, char *argv[])
 			k = l;
 		}
 	}
-	if (opt->non_denovo_search && (opt->splice_site_map == 0)) {
+	if (opt->non_denovo_search && (opt->junction_file == 0)) {
 	    fprintf(stderr,"[olego_aln] Warning! Non-denovo search mode without junction annotation, no splice mapping will be reported!\n" );
 	}
 	jigsaw_aln_core(argv[optind], argv[optind+1], opt);

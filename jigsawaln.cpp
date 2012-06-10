@@ -49,6 +49,7 @@ gap_opt_t *gap_init_opt()
 	o->min_intron_size = 20;
 	o->single_anchor_search = 0;
 	o->non_denovo_search = 0;
+	o->strand_mode = 3;
 	o->min_logistic_prob = 0.5;
 	o->splice_site_map = 0;
 	o->s_mm = 3; o->s_gapo = 11; o->s_gape = 4;
@@ -117,6 +118,10 @@ void jigsaw_cal_sa_reg_gap(bwt_t *const bwt[2], bwa_seq_t *seq, gap_stack_t *sta
 	bwa_seq_t *p = seq;
 
 	p->sa = 0; p->type = BWA_TYPE_NO_MATCH; p->c1 = p->c2 = 0; p->n_aln = 0; p->aln = 0;
+	
+	//sense_strand is init' here too: 0 +, 1 -, 2 .while opt->strand_mode 1 +, 2 -, 3 .
+	p->sense_strand = 2; //opt->strand_mode - 1;
+	
 	s[0] = p->seq; s[1] = p->rseq;
 
 	w[0] = w[1] = 0;
@@ -1188,6 +1193,10 @@ int jigsaw_locate_junc_one_anchor_with_anno_downstream(jigsaw_exon_t *exon, bwa_
 		  
     //sense_strand: 0 is "+", 1 is "-"
     for (uint32_t sense_strand = 0; sense_strand < 2; ++sense_strand) {
+	    
+	    if( (! (opt->strand_mode & STRAND_MODE_REVERSE) ) && ( sense_strand != exon->strand ) ) continue;
+	    if( (! (opt->strand_mode & STRAND_MODE_FORWARD) ) && ( sense_strand == exon->strand ) ) continue;
+		    
 	  int64_t ue_end_q = exon->end_q - n_backsearch ;
 	  uint32_t type = sense_strand ? SPLICE_ACCEPTOR : SPLICE_DONOR;
 	  for (int64_t ue_end_t = min_ue_end_t; ue_end_t <= max_ue_end_t; ++ue_end_t, ue_end_q++) {
@@ -1246,7 +1255,7 @@ int jigsaw_locate_junc_one_anchor_with_anno_downstream(jigsaw_exon_t *exon, bwa_
 				  if (!junction) junction = (jigsaw_junction_t*) calloc (1, sizeof(jigsaw_junction_t));
 				  junction->uexon = exon;
 				  junction->dexon = de;
-				  junction->strand = exon->strand;
+				  junction->sense_strand = sense_strand;
 				  junction->n_mm = n_mm;
 				  junction->n_gapo_t = n_gapo_t;
 				  junction->n_gapo_q = n_gapo_q;
@@ -1286,7 +1295,7 @@ int jigsaw_locate_junc_one_anchor_with_anno_downstream(jigsaw_exon_t *exon, bwa_
 			     junction = (jigsaw_junction_t*) calloc (1, sizeof(jigsaw_junction_t));
 			     junction->uexon = exon;
 			     junction->dexon = de;
-			     junction->strand = exon->strand;
+			     junction->sense_strand = sense_strand;
 			     junction->n_mm = n_mm;
 			     junction->n_gapo_t = n_gapo_t;
 			     junction->n_gapo_q = n_gapo_q;
@@ -1329,6 +1338,9 @@ int jigsaw_locate_junc_one_anchor_denovo_downstream(jigsaw_exon_t *exon, bwa_seq
     jigsaw_junction_t *junction = 0;
     
     for (uint32_t sense_strand = 0; sense_strand < 2; ++sense_strand) {
+	    if( (! (opt->strand_mode & STRAND_MODE_REVERSE) ) && ( sense_strand != exon->strand ) ) continue;
+	    if( (! (opt->strand_mode & STRAND_MODE_FORWARD) ) && ( sense_strand == exon->strand ) ) continue;
+		    
 	    uint32_t type = sense_strand ? SPLICE_ACCEPTOR : SPLICE_DONOR;
 	    int64_t ue_end_q = exon->end_q - n_backsearch ;
 	    for (int64_t ue_end_t = min_ue_end_t; ue_end_t <= max_ue_end_t; ue_end_t++, ue_end_q++) {
@@ -1436,7 +1448,7 @@ int jigsaw_locate_junc_one_anchor_denovo_downstream(jigsaw_exon_t *exon, bwa_seq
 					    junction = (jigsaw_junction_t*) calloc (1, sizeof(jigsaw_junction_t));
 					    junction->uexon = exon;
 					    junction->dexon = de;
-					    junction->strand = exon->strand;
+					    junction->sense_strand = sense_strand;
 					    junction->n_mm = junction->n_gapo_t = junction->n_gapo_q = 0;
 					    junction->n_gape_t = junction->n_gape_q = 0;
 					    junction->start_q = ue_end_q;
@@ -1498,6 +1510,9 @@ int jigsaw_locate_junc_one_anchor_with_anno_upstream(jigsaw_exon_t *exon, bwa_se
     
     //sense_strand: 0 is "+", 1 is "-"
     for (uint32_t sense_strand = 0; sense_strand < 2; ++sense_strand) {
+	    if( (! (opt->strand_mode & STRAND_MODE_REVERSE) ) && ( sense_strand != exon->strand ) ) continue;
+	    if( (! (opt->strand_mode & STRAND_MODE_FORWARD) ) && ( sense_strand == exon->strand ) ) continue;
+		    
 	    int64_t de_start_q = exon->start_q + n_backsearch;
 	    uint32_t type = sense_strand ? SPLICE_DONOR : SPLICE_ACCEPTOR;
 	    for (int64_t de_start_t = max_de_start_t; de_start_t >= min_de_start_t ; de_start_t--, de_start_q--) {
@@ -1550,7 +1565,7 @@ int jigsaw_locate_junc_one_anchor_with_anno_upstream(jigsaw_exon_t *exon, bwa_se
 					if(!junction) junction = (jigsaw_junction_t*) calloc (1, sizeof(jigsaw_junction_t));
 					junction->dexon = exon;
 					junction->uexon = ue;
-					junction->strand = exon->strand;
+					junction->sense_strand = sense_strand;
 					junction->n_mm =n_mm;
 					junction->n_gapo_t = n_gapo_t;
 					junction->n_gapo_q = n_gapo_q;
@@ -1587,7 +1602,7 @@ int jigsaw_locate_junc_one_anchor_with_anno_upstream(jigsaw_exon_t *exon, bwa_se
 				    junction = (jigsaw_junction_t*) calloc (1, sizeof(jigsaw_junction_t));
 				    junction->dexon = exon;
 				    junction->uexon = ue;
-				    junction->strand = exon->strand;
+				    junction->sense_strand = sense_strand;
 				    junction->n_mm =n_mm;
 				    junction->n_gapo_t = n_gapo_t;
 				    junction->n_gapo_q = n_gapo_q;
@@ -1632,6 +1647,9 @@ int jigsaw_locate_junc_one_anchor_denovo_upstream(jigsaw_exon_t *exon, bwa_seq_t
     jigsaw_junction_t *junction = 0;
     
     for (uint32_t sense_strand = 0; sense_strand < 2; ++sense_strand) {
+	if( (! (opt->strand_mode & STRAND_MODE_REVERSE) ) && ( sense_strand != exon->strand ) ) continue;
+	if( (! (opt->strand_mode & STRAND_MODE_FORWARD) ) && ( sense_strand == exon->strand ) ) continue;
+		    
         uint32_t type = sense_strand ? SPLICE_DONOR : SPLICE_ACCEPTOR; 
 	int64_t de_start_q = exon->start_q + n_backsearch ;
 	for (int64_t de_start_t = max_de_start_t; de_start_t >= min_de_start_t ; de_start_t--, de_start_q--) {
@@ -1724,7 +1742,7 @@ int jigsaw_locate_junc_one_anchor_denovo_upstream(jigsaw_exon_t *exon, bwa_seq_t
 				    junction = (jigsaw_junction_t*) calloc (1, sizeof(jigsaw_junction_t));
 				    junction->dexon = exon;
 				    junction->uexon = ue;
-				    junction->strand = exon->strand;
+				    junction->sense_strand = sense_strand;
 				    junction->n_mm = junction->n_gapo_t = junction->n_gapo_q = 0;
 				    junction->n_gape_t = junction->n_gape_q = 0;
 				    junction->start_q = ue->end_q;
@@ -2159,6 +2177,9 @@ int jigsaw_locate_junc_two_anchors_with_anno (jigsaw_exon_t *ue, jigsaw_exon_t *
 	for (int64_t ue_end_t = min_ue_end_t; ue_end_t <= max_ue_end_t; ++ue_end_t) {
 	       int64_t de_start_t = (de->start_t + n_backsearch) - (gap_len - (ue_end_t - min_ue_end_t));
 	       for (uint32_t sense_strand = 0; sense_strand < 2; ++sense_strand) {
+		   if( (! (opt->strand_mode & STRAND_MODE_REVERSE) ) && ( sense_strand != ue->strand )  ) continue;
+		   if( (! (opt->strand_mode & STRAND_MODE_FORWARD) ) && ( sense_strand == ue->strand ) ) continue;
+		   
 		  uint32_t type = sense_strand ? SPLICE_ACCEPTOR : SPLICE_DONOR;
 		  splice_site_t* known_ss = retrieve_splice_site (opt->splice_site_map, ue_end_t +1, sense_strand, type);
 		  if (!known_ss) continue;
@@ -2193,8 +2214,7 @@ int jigsaw_locate_junc_two_anchors_with_anno (jigsaw_exon_t *ue, jigsaw_exon_t *
 			      //better junction found
 			      if (diff <= local_max_diff && diff < best_diff) {
 					if (!p) p = (jigsaw_junction_t *) calloc (1, sizeof(jigsaw_junction_t));
-					p->strand = ue->strand; //strand of the splice site
-					//TODO: need to check the strand here
+					p->sense_strand = sense_strand; //strand of the splice site
 					p->uexon = ue; p->dexon = de;
 					p->start_t = ue_end_t; p->end_t = de_start_t;
 					p->start_q = ue->end_q - n_backsearch + ue_end_t - min_ue_end_t;
@@ -2217,7 +2237,7 @@ int jigsaw_locate_junc_two_anchors_with_anno (jigsaw_exon_t *ue, jigsaw_exon_t *
 			    if (diff <= local_max_diff ){
 				p = (jigsaw_junction_t *) calloc (1, sizeof(jigsaw_junction_t));
 				
-				p->strand = ue->strand;
+				p->sense_strand = sense_strand;
 				p->uexon = ue; p->dexon = de;
 				//a number of junctions will share these exons....for now
 				p->start_t = ue_end_t; p->end_t = de_start_t;
@@ -2259,7 +2279,7 @@ int jigsaw_locate_junc_two_anchors_denovo (jigsaw_exon_t *ue, jigsaw_exon_t *de,
 	if( local_max_diff > 2 ) local_max_diff = 2;
         //int best_diff = opt->max_diff+1;
 	int best_diff = local_max_diff +1;
-	//uint32_t strand; //strand of splice sites
+	uint32_t sense_strand; //strand of splice sites
 	int num_junc_found_denovo = 0;
 	int64_t istart_t, iend_t,k ;
 	int i;
@@ -2276,13 +2296,16 @@ int jigsaw_locate_junc_two_anchors_denovo (jigsaw_exon_t *ue, jigsaw_exon_t *de,
 		//check splice sites
 		//TODO: only GT/AG splice sites now
 		if (get_pacseq_base (pacseq,istart_t) == BASE_G && get_pacseq_base (pacseq, istart_t +1) == BASE_T
-			&& get_pacseq_base (pacseq, iend_t-1) == BASE_A && get_pacseq_base (pacseq, iend_t) == BASE_G);
-	//		strand = 0;
+			&& get_pacseq_base (pacseq, iend_t-1) == BASE_A && get_pacseq_base (pacseq, iend_t) == BASE_G  )
+			sense_strand = 0;
 		else if (get_pacseq_base (pacseq,istart_t) == BASE_C && get_pacseq_base (pacseq, istart_t +1) == BASE_T
-			&& get_pacseq_base (pacseq, iend_t-1) == BASE_A && get_pacseq_base (pacseq, iend_t) == BASE_C);
-	//		strand = 1;
+			&& get_pacseq_base (pacseq, iend_t-1) == BASE_A && get_pacseq_base (pacseq, iend_t) == BASE_C  )
+			sense_strand = 1;
 		else continue;
-
+		
+		if( (! (opt->strand_mode & STRAND_MODE_REVERSE) ) && ( sense_strand != ue->strand )  ) continue;
+                if( (! (opt->strand_mode & STRAND_MODE_FORWARD) ) && ( sense_strand == ue->strand ) ) continue;
+		   
 		//perform banded alignment near candidate splice sites
 		i = 0;
 		for (k = min_ue_end_t + 1; k <= ue_end_t; ++k, ++i)
@@ -2307,8 +2330,7 @@ int jigsaw_locate_junc_two_anchors_denovo (jigsaw_exon_t *ue, jigsaw_exon_t *de,
 		    if (diff <= local_max_diff && diff < best_diff) {
 			    if (!p) p = (jigsaw_junction_t *) calloc (1, sizeof(jigsaw_junction_t));
 			    //only allocate once in this case
-	//		    p->strand = strand; //strand of the splice site
-			    p->strand = ue->strand;
+			    p->sense_strand = sense_strand;
 			    p->uexon = ue; p->dexon = de;
 			    p->start_t = ue_end_t; p->end_t = de_start_t;
 			    p->start_q = ue->end_q - n_backsearch + ue_end_t - min_ue_end_t;
@@ -2326,8 +2348,7 @@ int jigsaw_locate_junc_two_anchors_denovo (jigsaw_exon_t *ue, jigsaw_exon_t *de,
 		else {
 		    if (diff <= local_max_diff){
 			p = (jigsaw_junction_t *) calloc (1, sizeof(jigsaw_junction_t));
-			//p->strand = strand;
-			p->strand = ue->strand;
+			p->sense_strand = sense_strand;
 			p->uexon = ue; p->dexon = de;
 			p->start_t = ue_end_t; p->end_t = de_start_t;
 			p->start_q = ue->end_q - n_backsearch + ue_end_t - min_ue_end_t;
@@ -2369,6 +2390,10 @@ int jigsaw_locate_junc_two_anchors_inner_exon_with_anno (jigsaw_exon_t *ue, jigs
     
     for (ue_end_t = min_ue_end_t; ue_end_t <= ue->end_t; ue_end_t++ ){
 	for (uint32_t sense_strand = 0; sense_strand < 2; ++sense_strand) {
+	    
+	    if( (! (opt->strand_mode & STRAND_MODE_REVERSE) ) && ( sense_strand != ue->strand ) ) continue;
+	    if( (! (opt->strand_mode & STRAND_MODE_FORWARD) ) && ( sense_strand == ue->strand ) ) continue;
+			       
 	    uint32_t us_type = sense_strand ? SPLICE_ACCEPTOR : SPLICE_DONOR;
 	    splice_site_t* known_ss_us= retrieve_splice_site (opt->splice_site_map, ue_end_t +1, sense_strand, us_type);
 	    if(!known_ss_us) continue;
@@ -2389,6 +2414,10 @@ int jigsaw_locate_junc_two_anchors_inner_exon_with_anno (jigsaw_exon_t *ue, jigs
     //do the same for the downstream
     for(de_start_t = de->start_t + n_backsearch; de_start_t >= de->start_t; de_start_t--){
 	for (uint32_t sense_strand = 0; sense_strand < 2; ++sense_strand) {
+
+	    if( (! (opt->strand_mode & STRAND_MODE_REVERSE) ) && ( sense_strand != de->strand ) ) continue;
+	    if( (! (opt->strand_mode & STRAND_MODE_FORWARD) ) && ( sense_strand == de->strand ) ) continue;
+			
 	    uint32_t ds_type = sense_strand ? SPLICE_DONOR: SPLICE_ACCEPTOR;
 	    splice_site_t* known_ss_ds= retrieve_splice_site (opt->splice_site_map, de_start_t - 1, sense_strand, ds_type);
 	    if(!known_ss_ds) continue;
@@ -2409,6 +2438,10 @@ int jigsaw_locate_junc_two_anchors_inner_exon_with_anno (jigsaw_exon_t *ue, jigs
 	    //check the distance
 	    if(us_iter->second + min_exon_size > ds_iter->first) continue;
 	    for (uint32_t sense_strand = 0; sense_strand < 2; ++sense_strand) {
+		
+		if( (! (opt->strand_mode & STRAND_MODE_REVERSE) ) && ( sense_strand != ue->strand ) ) continue;
+		if( (! (opt->strand_mode & STRAND_MODE_FORWARD) ) && ( sense_strand == ue->strand ) ) continue;
+			    
 		//check if they are on the same strand
 		uint32_t us_type = sense_strand ? SPLICE_ACCEPTOR : SPLICE_DONOR;
 		splice_site_t* known_ss_us= retrieve_splice_site (opt->splice_site_map, us_iter->first +1, sense_strand, us_type);
@@ -2465,7 +2498,7 @@ int jigsaw_locate_junc_two_anchors_inner_exon_with_anno (jigsaw_exon_t *ue, jigs
 			jigsaw_junction_t *us_junction = (jigsaw_junction_t*) calloc (1, sizeof(jigsaw_junction_t));
 			us_junction->uexon = ue;
 			us_junction->dexon = me;
-			us_junction->strand = ue->strand;
+			us_junction->sense_strand = sense_strand;
 			us_junction->n_mm = us_junction->n_gapo_t = us_junction->n_gapo_q = 0;
 			us_junction->n_gape_t = us_junction->n_gape_q = 0;
 			us_junction->start_q = ue_end_q;
@@ -2478,7 +2511,7 @@ int jigsaw_locate_junc_two_anchors_inner_exon_with_anno (jigsaw_exon_t *ue, jigs
 			jigsaw_junction_t *ds_junction = (jigsaw_junction_t*) calloc (1, sizeof(jigsaw_junction_t));
 			ds_junction->uexon = me;
 			ds_junction->dexon = de;
-			ds_junction->strand = me->strand;
+			ds_junction->sense_strand = sense_strand;
 			ds_junction->n_mm = ds_junction->n_gapo_t = ds_junction->n_gapo_q = 0;
 			ds_junction->n_gape_t = ds_junction->n_gape_q = 0;
 			ds_junction->start_q = me->end_q;
@@ -2511,6 +2544,10 @@ int jigsaw_locate_junc_two_anchors_inner_exon_denovo(jigsaw_exon_t *ue, jigsaw_e
     int64_t ue_end_q, de_start_q, ue_end_t, de_start_t;
     for (ue_end_t = min_ue_end_t, ue_end_q = ue->end_q - n_backsearch; ue_end_t <= ue->end_t; ue_end_t++, ue_end_q++ )	{
 	for (uint32_t sense_strand = 0; sense_strand < 2; ++sense_strand) {
+	    
+	    if( (! (opt->strand_mode & STRAND_MODE_REVERSE) ) && ( sense_strand != ue->strand ) ) continue;
+	    if( (! (opt->strand_mode & STRAND_MODE_FORWARD) ) && ( sense_strand == ue->strand ) ) continue;
+			
 	    //always going downstream, so 
 	    //upstream type:
 	    uint32_t us_type = sense_strand ? SPLICE_ACCEPTOR : SPLICE_DONOR;
@@ -2627,7 +2664,7 @@ int jigsaw_locate_junc_two_anchors_inner_exon_denovo(jigsaw_exon_t *ue, jigsaw_e
 					    jigsaw_junction_t *us_junction = (jigsaw_junction_t*) calloc (1, sizeof(jigsaw_junction_t));
 					    us_junction->uexon = ue;
 					    us_junction->dexon = me;
-					    us_junction->strand = ue->strand;
+					    us_junction->sense_strand = sense_strand;
 					    us_junction->n_mm = us_junction->n_gapo_t = us_junction->n_gapo_q = 0;
 					    us_junction->n_gape_t = us_junction->n_gape_q = 0;
 					    us_junction->start_q = ue_end_q;
@@ -2642,7 +2679,7 @@ int jigsaw_locate_junc_two_anchors_inner_exon_denovo(jigsaw_exon_t *ue, jigsaw_e
 					    jigsaw_junction_t *ds_junction = (jigsaw_junction_t*) calloc (1, sizeof(jigsaw_junction_t));
 					    ds_junction->uexon = me;
 					    ds_junction->dexon = de;
-					    ds_junction->strand = me->strand;
+					    ds_junction->sense_strand = sense_strand;
 					    ds_junction->n_mm = ds_junction->n_gapo_t = ds_junction->n_gapo_q = 0;
 					    ds_junction->n_gape_t = ds_junction->n_gape_q = 0;
 					    ds_junction->start_q = me->end_q;
@@ -2851,8 +2888,8 @@ void jigsaw_pair_exons (bwa_seq_t *seq, list<jigsaw_exon_t*> *exons, const gap_o
  */
 bool jigsaw_junction_comp_strand_pos_t (const jigsaw_junction_t *a, const jigsaw_junction_t *b)
 {
-	if (a->strand < b->strand) return true; //positive strand (0) first
-	else if (a->strand > b->strand) return false;
+	if (a->uexon->strand < b->uexon->strand) return true; //positive strand (0) first
+	else if (a->sense_strand > b->sense_strand) return false;
 	else {//the same strand compare position
 		int64_t sa = a->uexon->start_t;
 		int64_t sb = b->uexon->start_t;
@@ -2877,7 +2914,9 @@ void jigsaw_uniq_junctions ( list<jigsaw_junction_t*> *junctions )
        last_iter--;
        jigsaw_junction_t *p = *iter;
        jigsaw_junction_t *last_p = *last_iter;
-       if(p->strand == last_p->strand && p->uexon == last_p->uexon && p->dexon == last_p->dexon && p->start_t == last_p->start_t && p->end_t == last_p->end_t) {
+       //if(p->strand == last_p->strand && p->uexon == last_p->uexon && p->dexon == last_p->dexon && p->start_t == last_p->start_t && p->end_t == last_p->end_t) {
+	// TODO : need to think about the strand again
+       if(p->uexon == last_p->uexon && p->dexon == last_p->dexon && p->start_t == last_p->start_t && p->end_t == last_p->end_t) {
 	   free(p);
 	   iter = junctions->erase(iter);
        }
@@ -2918,7 +2957,7 @@ void jigsaw_concat_junctions (list <jigsaw_junction_t*> *junctions, int len,
 	//loop start from the second junction
 	for (; iter != junctions->end(); iter++) {
 	    curr_p = *iter;
-	    if ( p->uexon == curr_p->uexon && curr_p->strand == p->strand ){
+	    if ( p->uexon == curr_p->uexon && curr_p->sense_strand == p->sense_strand ){
 		//check if this junction (curr_p) has the same start exon as the "first" junction (p)
 		//make a new branch start
 		curr_aln = (jigsaw_spliced_aln_t *) calloc (1, sizeof (jigsaw_spliced_aln_t));
@@ -2994,7 +3033,7 @@ void jigsaw_concat_junctions (list <jigsaw_junction_t*> *junctions, int len,
 			curr_aln = *aln_iter;
 			//get the last junction in the current alignment
 			jigsaw_junction_t *last = curr_aln->junctions->back();
-			if (last->dexon == curr_p->uexon && last->strand == curr_p->strand) { 
+			if (last->dexon == curr_p->uexon && last->sense_strand == curr_p->sense_strand) { 
 			    //the uexon of this junction (curr_p) matches the upstream dexon in aln
 			    //make a copy of curr_aln
 			    jigsaw_spliced_aln_t *curr_aln_copy = (jigsaw_spliced_aln_t *) calloc (1, sizeof (jigsaw_spliced_aln_t));
@@ -3069,7 +3108,7 @@ void jigsaw_concat_junctions (list <jigsaw_junction_t*> *junctions, int len,
 			for (; iter != curr_aln->junctions->end(); ++iter, ++last_iter){
 			    last_p = *last_iter;
 			    curr_p = *iter;
-			    if(last_p->start_t != curr_p->start_t || last_p->end_t != curr_p->end_t || last_p->strand != curr_p->strand){
+			    if(last_p->start_t != curr_p->start_t || last_p->end_t != curr_p->end_t || last_p->uexon->strand != curr_p->uexon->strand){
 				is_identical = 0;
 				break;
 			    }
@@ -3090,7 +3129,7 @@ void jigsaw_concat_junctions (list <jigsaw_junction_t*> *junctions, int len,
 		jigsaw_junction_t *last = curr_aln->junctions->back();
 
 		curr_aln->strand = first->uexon->strand;
-		curr_aln->sense_strand = first->strand;
+		curr_aln->sense_strand = first->sense_strand;
 
 		curr_aln->start_t = first->uexon->start_t;
 		curr_aln->start_q = first->uexon->start_q;
@@ -3196,7 +3235,7 @@ void jigsaw_search_exonic_aln (jigsaw_spliced_aln_cluster_t *clust, bwa_seq_t *s
 		  // init' this aln
 		  curr_aln->junctions = NULL;
 		  curr_aln->strand = p->strand;
-		  curr_aln->sense_strand = p->strand;
+		  curr_aln->sense_strand = 2;// cannot be determined from data
 		  curr_aln->start_t = p->start_t;
 		  curr_aln->start_q = p->start_q;
 		curr_aln->end_t = p->end_t;
@@ -3582,6 +3621,8 @@ void jigsaw_aln_one_spliced (bwt_t *const bwt[2], bwa_seq_t *seq, const int *g_l
 			//set main alignment
 			seq->pos = top->start_t;
 			seq->strand = top->strand;
+			
+			seq->sense_strand = top->sense_strand;
 
 			if(top->junctions != NULL){
 			    seq->cigar = jigsaw_spliced_aln2cigar(top, seq->strand ? seq->rseq : seq->seq,
@@ -3626,6 +3667,7 @@ void jigsaw_aln_one_spliced (bwt_t *const bwt[2], bwa_seq_t *seq, const int *g_l
 			bwt_multi1_t *q = seq->multi + j;
 			q->pos = curr_aln->start_t;
 			q->strand = curr_aln->strand;
+			q->sense_strand = curr_aln->sense_strand;
 			int n_cigar_tmp;
 			if(curr_aln->junctions != NULL){
 			    q->cigar = jigsaw_spliced_aln2cigar(curr_aln, q->strand ? seq->rseq : seq->seq,

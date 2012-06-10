@@ -1,3 +1,53 @@
+commit f2f447236bcc3014e98c8abcade608782439f13b
+Author: wuj <wuj@cshl.edu>
+Date:   Wed Jun 6 15:57:56 2012 -0400
+
+    bug about strand-mode fixed
+
+commit 0dde2dcc962c11cbc942df299652940720b8c499
+Author: wuj <wuj@cshl.edu>
+Date:   Sun Jun 3 22:11:42 2012 -0400
+
+    fixed a bug in the junction_concate
+    fixed a minor warning bug
+
+commit 51d77e909b4992e1a9db31cc5674291c4def70f9
+Author: wuj <wuj@cshl.edu>
+Date:   Thu May 31 16:49:27 2012 -0400
+
+    Changes in README
+
+commit 3bb9ef248c4ee4d7498553ea0783987ac1a1141b
+Author: wuj <wuj@cshl.edu>
+Date:   Wed May 30 23:20:43 2012 -0400
+
+    fixed XS tag, modified the Perl scripts for more accurate strand processing
+
+commit cab072f2602bf2bdedd831c9ebcf1b9880c9a074
+Author: wuj <wuj@cshl.edu>
+Date:   Mon May 28 15:58:53 2012 -0400
+
+    option strand_mode added for strand specific libs
+
+commit b8a088f5db03a97c086f516c2ac280bcf19caccc
+Author: wuj <wuj@cshl.edu>
+Date:   Wed May 16 11:03:10 2012 -0400
+
+    minor fix
+
+commit fd730024bc6cd04d54459e96d4959180c127e28c
+Author: wuj <wuj@cshl.edu>
+Date:   Tue May 15 18:05:19 2012 -0400
+
+    minor fix in README
+    version number fix
+
+commit 05111b657836935184ed25f08397a7d1af1d281a
+Author: wuj <wuj@cshl.edu>
+Date:   Tue May 15 15:54:50 2012 -0400
+
+    add ChangeLog
+
 commit c84018c2c712c30972e674e864e3949a22a8a836
 Merge: 569fdd4 4259de9
 Author: wuj <wuj@cshl.edu>

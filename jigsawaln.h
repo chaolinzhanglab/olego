@@ -78,7 +78,7 @@ typedef struct {
 	//since there is no mismatch near hits, these should not be redundant with mismatches
 	//recorded in exons
 
-	uint32_t strand:1;
+	uint32_t sense_strand:2;
 	// strand of the splice site, which might be different from the strand of exons
 
 	int64_t start_t, end_t, start_q, end_q;
@@ -94,7 +94,7 @@ typedef struct {
 	uint32_t n_mm:8, n_gapo_t:8, n_gape_t:8, n_gapo_q:8, n_gape_q:8, diff;
 
 	uint32_t strand:1; //the strand of the query sequence
-	uint32_t sense_strand:1; //the strand of the transcript, as determined by the splice sites
+	uint32_t sense_strand:2; //the strand of the transcript, as determined by the splice sites
 	//strand and sense_strand might be different depending on whether the RNA-seq protocol have strand information
 
 	int64_t start_q, start_t, end_q, end_t;
@@ -148,7 +148,7 @@ typedef uint32_t jigsaw_cigar_t;
 
 typedef struct {
 	uint32_t pos;
-	uint32_t n_cigar:15, gap_t:8, gap_q:8, mm:8, strand:1;
+	uint32_t n_cigar:15, gap_t:8, gap_q:8, mm:8, strand:1, sense_strand:2;
 	jigsaw_cigar_t *cigar;
 } bwt_multi1_t;
 
@@ -182,6 +182,7 @@ typedef struct __jigsaw_seq_t {
 	//parameters for the main hit
 	bwtint_t sa, pos;
 	uint32_t strand:1, type:2, dummy:1, extra_flag:8;
+	uint32_t sense_strand:2;
 	uint32_t n_mm:8, n_gapo_t:8, n_gape_t:8, n_gapo_q:8, n_gape_q:8, mapQ:8;
 	int score;
 	int n_cigar;
@@ -218,6 +219,9 @@ typedef struct __jigsaw_seq_t jigsaw_anchor_seq_t;
 #define BWA_MODE_BAM_READ1  0x80
 #define BWA_MODE_BAM_READ2  0x100
 
+#define STRAND_MODE_FORWARD 0x01
+#define STRAND_MODE_REVERSE 0X02
+
 typedef struct {
 	int word_size;
 	int max_word_diff;
@@ -242,6 +246,7 @@ typedef struct {
 	uint32_t non_denovo_search;
 	uint32_t report_best_only;
 	double min_logistic_prob;
+	int strand_mode;
 } gap_opt_t;
 
 #define BWA_PET_STD   1

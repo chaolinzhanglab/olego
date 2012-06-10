@@ -1,3 +1,4 @@
+#!/usr/bin/perl -w
 
 use strict;
 use warnings;
@@ -9,11 +10,11 @@ use Carp;
 my $prog = basename ($0);
 
 my $verbose = 0;
-my $strandaware = 0;
+#my $strandaware = 0;
 
 GetOptions (
-    "v|verbose"=>\$verbose,
-    "s"=>\$strandaware
+    "v|verbose"=>\$verbose
+#    "s"=>\$strandaware
 );
 
 if (@ARGV != 2)
@@ -41,13 +42,13 @@ while(my $line = <$fin>)
     {
 	    my $start = $a[1] + $blockStarts[$i] + $blockSizes[$i];
 	    my $end = ($a[1] + $blockStarts[$i+1]);
-	    if( not $strandaware){
-		$junchash{join(",", $a[0], $start, $end)}++;
-	    }
-	    else
-	    {
+#	    if( not $strandaware){
+#		$junchash{join(",", $a[0], $start, $end)}++;
+#	    }
+#	    else
+#	    {
 		$junchash{join(",", $a[0], $start, $end, $a[5])}++;
-	    }
+#	    }
 	    
     }
 
@@ -63,13 +64,12 @@ foreach my $key (keys %junchash)
     print $fout $a[2], "\t";
     print $fout "\.\t";
     print $fout $junchash {$key},"\t";
-    if ( not $strandaware){
-	print $fout "+\n";
-    }
-    else
-    {
+#    if ( not $strandaware){
+#	print $fout "+\n";
+#    }
+#    else
+#    {
 	print $fout $a[3],"\n";
-    }
-    #print $a[5],"\n";
+ #   }
 }
 close($fout);

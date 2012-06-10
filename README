@@ -2,9 +2,9 @@ OLego -- short or long RNA-seq read mapping to discover exon junction
 
 Jie Wu (wuj@cshl.edu), Chaolin Zhang (czhang@rockefeller.edu)
 
-May 15 2012
+Updated on May 30, 2012
 
-This is an initial version of the manual and please check regularly for updates! 
+We are updating the manual frequently, so please check regularly for updates! 
 
 
 What is OLego?
@@ -14,19 +14,34 @@ OLego is a program specifically designed for de novo spliced mapping of mRNA-seq
 
 OLego is an open source code project and released under GPLv3. The implementation of OLego relies heavily on BWA (version 0.5.9rc1, http://bio-bwa.sourceforge.net/).  It also uses some source code from the Jim Kent source code tree (http://genome.ucsc.edu/admin/git.html). 
 
+Versions
+======================
+
+v1.0.3
+---------------------
+
+* Now supports strand specific library
+* Fixed bugs about XS
+
+v1.0.0
+----------------------
+
+* The initial Public release
+
+
 Prerequisites
 ======================
 
-The major programs of OLego (olego and olegoindex ) can be installed and ran on Unix-based system (Linux or MacOS) with GCC compiler installed. We provided set of scripts for post analysis and regression model construction, these codes may require Perl and R. 
+The major programs of OLego ( olego and olegoindex ) can be installed and ran on Unix-based system (Linux or MacOS) with GCC compiler installed. We provided scripts for post analysis and regression model construction, these codes may require Perl and R. 
 
 Download
 ======================
 
-The code and binary files can be found at http://sourceforge.net/projects/ngs-olego/files/ , we are regularly updating the code, so please check back often to keep your code updated. The code can also be reached via git::
+The code and binary files can be found at http://sourceforge.net/projects/ngs-olego/files/ , we are regularly updating the code, so please check back regularly to keep your code updated. The code can also be reached via git::
 
 	git clone git://git.code.sf.net/p/ngs-olego/code ngs-olego-code
 
-The main programs of OLego (olego and olegoindex ) can be installed and run on Unix-based system with GCC compiler installed. We also provide set of scripts for post analysis and regression model construction. These codes may require Perl and R installed. 
+The main programs of OLego (olego and olegoindex ) can be installed and run on Unix-based system with GCC compiler installed. We also provide scripts for post analysis and regression model construction. These codes may require Perl and R installed. 
 
 Installation
 ======================
@@ -37,7 +52,7 @@ To compile OLego on your computer, please go to the OLego directory and type::
 
 If everything goes right, you will find two executable files olegoindex and olego in the folder.
 
-We also provide binary executable files at http://sourceforge.net/projects/ngs-olego/files/ for x86_64 and i686 Linux system. 
+We also provide binary executable files at http://sourceforge.net/projects/ngs-olego/files/ for x86_64 and i686 Linux systems. 
 
 Please feel free to report any problems you come up with.
 
@@ -54,6 +69,8 @@ To run OLego, you need a BWT index for the reference sequences. We use exactly t
 
 Arguments:
 
+        ==========  ========================================================================
+	Argument    Description
 	==========  ========================================================================
 	<in.fasta>  This is the fasta format file with the reference sequence. Please put 
 		    all the sequences (from different chromosomes ) in a single file.
@@ -102,7 +119,7 @@ Basic options:
 			    format, with some customized tags. Please see the details of the file
 			    format below. 
     -s,--single-anchor	    Enable single-anchor de-novo junction search. [ default: disabled ].
-    -j --junction-file	    Annotation file for known exon junctions. It is in BED format and please 
+    -j,--junction-file	    Annotation file for known exon junctions. It is in BED format and please 
 			    see the junc format description below. 
     -n,--non-denovo	    No de novo junction search. Note that if junction annotation file is 
 			    provided by -j, these "known" junctions will still be searched. 
@@ -113,8 +130,8 @@ Basic options:
 			    model will be used if no file is selected. The model file contains the 
 			    parameters for the regression model (the coefficients, the PWM and the 
 			    background ). We have provided model files for mouse and human. User-defined
-			    model can also be generated with the regression_model_gen for any species.
-			    Please see the usage below. 
+			    model can also be generated with the regression_model_gen scripts for any 
+			    species. Please see its usage below. 
     -M,--max-total-diff	    Maximum total difference between query read and reference sequence. 
 			    Either INT or FLOAT number can be used for this option. An INT number 
 			    will specify the maximum total edit distance allowed for each alignment 
@@ -136,7 +153,7 @@ Basic options:
     -I,--max-intron	    Maximum intron size for de novo junction search (INT) [ default: 500000 ].
     -i,--min-intron	    Minimum intron size for de novo junction search (INT) [ default: 20 ].
     -e,--min-exon	    Minimum micro-exon size to be searched (INT) [ default: 9 ].
-    -a,--min-anchor	    Minimum anchor size in de novo single anchor junction searches (INT) 
+    -a,--min-anchor	    Minimum anchor size in de novo single-anchor junction searches (INT) 
 			    [ default: 8 ]. We define "anchor size" as the smaller number of matched 
 			    nucleotides on the read at the end of the junction. 
     -k,--known-min-anchor   Minimum anchor size in single-anchor junction searches when the junction
@@ -150,10 +167,15 @@ Advanced options:
     ======================  =================================================================================
     Option		    Description
     ======================  =================================================================================
+    --strand-mode	    Strand mode (INT). This value should be selected from 1, 2 or 3. For strand 
+			    specific RNA-seq data, please use 1 if the reads should be mapped to the FORWARD 
+			    strand of the RNA, use 2 if the reads should be mapped to the REVERSE strand. If 
+			    the library is not strand specific, please use 3 to allow mapping onto both 
+			    strands. [ default: 3 ]
     --min-logistic-prob	    Minimum logistic probablity for an alignment, calculated with the splice sites
 			    motif and intron size, in the range of [0,1) [ default: 0.50]. A higher number
 			    means more stringent filter, we don't recommend using high value since more true
-			    de novo junctions will be filtered out. 
+			    de novo junctions will be filtered out.  
     --max-overhang	    Maximum number of overhanging nucleotides allowed near the candidate exon 
 			    boundary in junction searches (INT) [ default: 6 ]. After we extend the candidate 
 			    exons, we search for splice sites in the overhanging regions around the candidate 
@@ -202,13 +224,17 @@ Options:
     Option  Description
     ======  ==============================================================================
     -d	    Maximum distance between the two ends on the reference [ default:5000000 ].
+    --ss    Require the read-pair mapped to the same strand. By default, we require the
+	    two ends mapped to different strands, which is the case in strandard Illumina 
+	    RNA-seq data. 
+    --ns    Do not use strand information as a filter. 
     -v	    Verbose.
     ======  ==============================================================================
 
 xa2multi.pl
 ^^^^^^^^^^^^^^^^^^^^^
 
-This script can be used to extract all the alignments after the tag "XA" in each line. The current version is from BWA package, to be improved later. 
+This script can be used to extract all the alignments after the tag "XA" in each line. The current version is from BWA package, with minor modification.  
 
 Usage::
 	
@@ -226,13 +252,15 @@ Usage::
 
 Options:
 
-    ==========  =============================================================================
-    Option      Description
-    ==========  =============================================================================
-    -uniq	Only output uniquely mapped reads. The script identifies unique reads
-		by the tag "XT:A:U".
-    -v		Verbose.
-    ==========  =============================================================================    
+    ====================  =============================================================================
+    Option		    Description
+    ====================  =============================================================================
+    --uniq		    Only output uniquely mapped reads. The script identifies unique reads
+			    by the tag "XT:A:U".
+    --use-read-strand	    Use the strand of the read. By default, this script uses the strand of the 
+			    RNA based on the XS tag. 
+    -v			    Verbose.
+    ====================  =============================================================================    
 
 Using this script to convert SAM outputs from other programs might cause problems! 
 
@@ -240,7 +268,7 @@ Using this script to convert SAM outputs from other programs might cause problem
 bed2junc.pl
 ^^^^^^^^^^^^^^^^^^^^^
 
-This script can be used to retrieve unique junctions from BED format file. The number of supporting reads of each junction will be in the score (5th) column. The output file can be used as annotation file for OLego (option -j).
+This script can be used to retrieve unique junctions from BED format file. The number of supporting reads of each junction will be in the score (5th) column. The output file can be used as junction annotation file for OLego (option -j).
 
 Usage::
 	
@@ -292,7 +320,7 @@ SAM format
 
 OLego outputs the alignments in SAM format (http://samtools.sourceforge.net). Its specification can be found on samtools' website. 
 
-The following tags are used in OLego. Please pay attention to the X? tags, most of them were adopted from BWA, except XS:
+The following tags are used in OLego. Please pay attention to the X? tags, most of them were adopted from BWA:
 
     ===	===================================================
     Tag	Meaning
@@ -302,16 +330,21 @@ The following tags are used in OLego. Please pay attention to the X? tags, most 
     X0	Number of best hits
     X1	Number of suboptimal hits
     XM	Number of mismatches in the alignment
+    XN	Number of 'N's in the reference
     XO	Number of gap opens
     XG	Number of gap extentions
-    XT	Type: Unique/Repeat
-    XA	Alternative hits; format: (chr,pos,CIGAR,NM;)*
-    XS	Strand of the query 
+    XT	Type: Unique/Repeat/N *
+    XS	Strand of the RNA **
+    XA	Alternative hits; format: (chr,pos,CIGAR,NM,XS;)
     === ===================================================
+    
+*   "Unique" or "Repeat" is determined by the number of best hits ( top hits with the same edit distance, X0 ), NOT the total number of hits. "N" means there are more than 10 'N's in the reference ( XN>10 ). 
+
+**  For a junction read, the strand of the RNA is determined by the annotation if the junction is annotated, or by the splice signal if it's a novel junction. For exonic read, the strand can not be determined (a "." is assigned ). 
 
 Addtional scripts have been provided in the package for processing OLego output: sam2bed.pl can be used for conversion from SAM to BED format; xa2multi.pl can extract alignments after XA tags; mergePEsam.pl can merge the two outputs from paired-end RNA-seq data. 
 
-For general processing of SAM files, please check SAMTools. 
+For general processing of SAM files, please check SAMTools.
 
 junc format
 ^^^^^^^^^^^^^^^^^^^^^
@@ -336,13 +369,13 @@ The score column is not essential.
 Examples
 =====================
 
-Example pipeline::
+An example pipeline for strandard Illumina RNA-seq data::
 
     olegoindex -a bwtsw mm9.fa (all chromosomes combined)
     # build your BWT index
 
     olego -v -s -t 16 -o f.sam ~/mz-local/database/mm9/genome/olego/mm9.fa f.fa
-    # do the mapping with single anchor search enabled, with 16 cpu cores, output to f.sam
+    # do the mapping with single-anchor search enabled, with 16 cpu cores, output to f.sam
 
     olego -v -s -t 16 -o r.sam ~/mz-local/database/mm9/genome/olego/mm9.fa r.fa
     # do the same thing for the other file
@@ -360,5 +393,10 @@ Example pipeline::
     olego -v -s -t 16 -o r.remap.sam -j merge.junc --non-denovo ~/mz-local/database/mm9/genome/olego/mm9.fa r.fa
     # do a remapping to rescue more reads, no more de novo mapping here since we already used a junction annotation. 
 
+Example commands for strand specific RNA-seq data::
 
+    olego -v -s -t 16 -o f.sam --strand-mode 1 ~/mz-local/database/mm9/genome/olego/mm9.fa f.fa
+    # when you know that the reads should be mapped onto the forward strand of the transcripts
 
+    olego -v -s -t 16 -o r.sam --strand-mode 2 ~/mz-local/database/mm9/genome/olego/mm9.fa r.fa
+    # the other end should be on the reverse strand according to the protocol

@@ -11,19 +11,32 @@ my $verbose = 0;
 
 my $maxdist = 5000000; #cross 11 exons
 
+my $samestrand = 0;
+my $oppostrand = 1;
+my $nostrand   = 0;
+
 GetOptions (
-    "d|distance"=>\$maxdist,
+    "d:i"=>\$maxdist,
+    "ss"=>\$samestrand,
+    "ns"=>\$nostrand,
     "v|verbose"=>\$verbose
 );
+
+die "--ss and --ns cannot be used together.\n" if($nostrand == 1 and $samestrand == 1);
+    
+$oppostrand = 0 if ($nostrand == 1 or $samestrand == 1);
 
 my $prog = $0;
 
 if ( @ARGV != 3)
 {
     print "Merge sam format output from PE reads\n";
-    print "Usage: $prog [options] <end1.sam> <end2.sam> <out.sam>\n";
-    print "-d	max distance between the two ends on genome [$maxdist]\n";
-    print "-v	verbose\n";
+    print "Usage: $prog [options] <end1.sam> <end2.sam> <out.sam>\n\n";
+    print "	Please use --ss or --ns to specify the strategy of using strand information to filter read pairs.\n\n";
+    print "	-d	    max distance between the two ends on genome. [$maxdist]\n";
+    print "	--ss	    the two ends come from the same strand, instead of requring opposite strands by default \n";
+    print "	--ns	    do not use strand information. \n";
+    print "	-v	    verbose\n";
     exit 1;
 }
 
@@ -59,6 +72,7 @@ while (my $line1 = <$fin1>)
     my (@cigar1, @cigar2);
     my (@nm1, @nm2);
     my (@strand1, @strand2);
+    my (@sensestrand1, @sensestrand2); # the strand of the RNA
 
     push (@chr1, $RNAME1);
     push (@chr2, $RNAME2);
@@ -154,6 +168,25 @@ while (my $line1 = <$fin1>)
 	push(@nm2, -1);	
     }
     
+    if ( $TAG1=~/XS\:\S*\:([\+\-\.])/)
+    {
+	push(@sensestrand1, $1);
+    }
+    else
+    {
+	die "No XS tag!\n"; 
+    }
+
+   if ( $TAG2=~/XS\:\S*\:([\+\-\.])/)
+    {
+	push(@sensestrand2, $1);
+    }
+    else
+    {
+	die "No XS tag!\n"; 
+    }
+
+      
     # scan XA tags
     # XA should be the last tag
 
@@ -163,13 +196,20 @@ while (my $line1 = <$fin1>)
 	for(my $i=0; $i<@XAstrs; $i++)
 	{
 #	    XA:Z:chr4,+149621574,100M,0;chr2,+80678177,100M,0;
-	    $XAstrs[$i]=~/^(\w*?),([\+\-])(\d*?),(\w*?),(\d*?)$/;
-	    push(@chr1, $1);
-	    push(@strand1, $2);
-	    push(@pos1, $3);
-	    push(@cigar1, $4);
-	    push(@size1, getChromSize($4));
-	    push(@nm1, $5);
+	    if ($XAstrs[$i]=~/^(\w*?),([\+\-])(\d*?),(\w*?),(\d*?),([\+\-\.])$/)
+	    {
+		push(@chr1, $1);
+		push(@strand1, $2);
+		push(@pos1, $3);
+		push(@cigar1, $4);
+		push(@size1, getChromSize($4));
+		push(@nm1, $5);
+		push(@sensestrand1, $6);
+	    }
+	    else
+	    {
+		die "Wrong XA format.\n";
+	    }
 	}
     }
     if ($TAG2=~/XA\:\S\:(\S*)$/)
@@ -178,13 +218,21 @@ while (my $line1 = <$fin1>)
 	  for(my $i=0; $i<@XAstrs; $i++)
 	  {
 #	    XA:Z:chr4,+149621574,100M,0;chr2,+80678177,100M,0;
-	      $XAstrs[$i]=~/^(\w*?),([\+\-])(\d*?),(\w*?),(\d*?)$/;
-	      push(@chr2, $1);
-	      push(@strand2, $2);
-	      push(@pos2, $3);
-	      push(@cigar2, $4);
-	      push(@size2, getChromSize($4));
-	      push(@nm2, $5);
+	      if ($XAstrs[$i]=~/^(\w*?),([\+\-])(\d*?),(\w*?),(\d*?),([\+\-\.])$/)
+	      {
+		  push(@chr2, $1);
+		  push(@strand2, $2);
+		  push(@pos2, $3);
+		  push(@cigar2, $4);
+		  push(@size2, getChromSize($4));
+		  push(@nm2, $5);
+		  push(@sensestrand2, $6);
+	      }
+	      else
+	      {
+		  die "Wrong XA format.\n";
+
+		}
 	  }
       }
     # scan for the best match
@@ -197,6 +245,9 @@ while (my $line1 = <$fin1>)
 	{
 	    if($chr1[$i] eq $chr2[$j] and abs($pos2[$j]-$pos1[$i])<$maxdist)
 	    {
+		next if($oppostrand and ($strand1[$i] eq $strand2[$j]) );
+		next if($samestrand and ($strand1[$i] ne $strand2[$j]) );
+		
 		#$bestdistance =  abs($pos2[$j]-$pos2[$i]);
 		#$bestnm = $nm1[$i] + $nm2[$j];
 		$distanceij{$i.",".$j} = abs($pos2[$j]-$pos1[$i]);
@@ -265,7 +316,7 @@ while (my $line1 = <$fin1>)
 		}
 		
 		$outputline1 = join("\t", $QNAME1, $FLAG1, $chr1[$i], $pos1[$i], $MAPQ1, $cigar1[$i], $MRNM1, $MPOS1, $ISIZE1, $SEQ1, $QUAL1, "NM:i:".$nm1[$i]);
-		$outputline1 = $outputline1."\tXS:A:".$strand1[$i];
+		$outputline1 = $outputline1."\tXS:A:".$sensestrand1[$i];
 		if(scalar (keys %distanceij) >1)
 		{
 		    $outputline1 = $outputline1."\tXT:A:R";
@@ -276,7 +327,7 @@ while (my $line1 = <$fin1>)
 		    $outputline1 = $outputline1."\tXT:A:U";
 		}
 		$outputline2 = join("\t", $QNAME2, $FLAG2, $chr2[$j], $pos2[$j], $MAPQ2, $cigar2[$j], $MRNM2, $MPOS2, $ISIZE2, $SEQ2, $QUAL2, "NM:i:".$nm2[$j]);
-		$outputline2 = $outputline2."\tXS:A:".$strand2[$j];
+		$outputline2 = $outputline2."\tXS:A:".$sensestrand2[$j];
 		if(scalar (keys %distanceij) >1)
 		{
 		    $outputline2 = $outputline2."\tXT:A:R";
@@ -290,8 +341,8 @@ while (my $line1 = <$fin1>)
 	    }
 	    else
 	    {
-		$outputline1 = $outputline1 .join(",",$chr1[$i], $strand1[$i].$pos1[$i],$cigar1[$i], $nm1[$i] ).";";
-		$outputline2 = $outputline2 .join(",",$chr2[$j], $strand2[$j].$pos2[$j],$cigar2[$j], $nm2[$j] ).";";
+		$outputline1 = $outputline1 .join(",",$chr1[$i], $strand1[$i].$pos1[$i],$cigar1[$i], $nm1[$i], $sensestrand1[$i] ).";";
+		$outputline2 = $outputline2 .join(",",$chr2[$j], $strand2[$j].$pos2[$j],$cigar2[$j], $nm2[$j], $sensestrand2[$j] ).";";
 	    }
 	    
         }

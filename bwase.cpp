@@ -660,7 +660,8 @@ void bwa_print_sam1(const bntseq_t *bns, bwa_seq_t *p, const bwa_seq_t *mate, in
 			// print tags
 			printf("\tXT:A:%c\t%s:i:%d", XT, (mode & BWA_MODE_COMPREAD)? "NM" : "CM", p->nm);
 			// print XS tag, to be compatible with Cufflinks
-			printf("\tXS:A:%c", p->strand ? '-':'+' );
+			if (p->sense_strand != 2 ) printf("\tXS:A:%c", p->sense_strand ? '-':'+' );
+			else printf("\tXS:A:.");
 			if (nn) printf("\tXN:i:%d", nn);
 			if (mate) printf("\tSM:i:%lu\tAM:i:%d", p->seQ, am);
 			if (p->type != BWA_TYPE_MATESW) { // X0 and X1 are not available for this type of alignment
@@ -683,7 +684,9 @@ void bwa_print_sam1(const bntseq_t *bns, bwa_seq_t *p, const bwa_seq_t *mate, in
 						for (k = 0; k < q->n_cigar; ++k)
 							printf("%d%c", __cigar_len(q->cigar[k]), "MIDSN"[__cigar_op(q->cigar[k])]);
 					} else printf("%dM", p->len);
-					printf(",%d;", q->gap_t + q->gap_q + q->mm);
+					printf(",%d", q->gap_t + q->gap_q + q->mm);
+					if (q->sense_strand != 2) printf(",%c;", q->sense_strand? '-' : '+' );
+					else printf(",.;");
 				}
 			}
 		}
