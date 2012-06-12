@@ -17,6 +17,11 @@ OLego is an open source code project and released under GPLv3. The implementatio
 Versions
 ======================
 
+v1.0.4
+---------------------
+
+* Option changes ( do single-anchor search by default now ). 
+
 v1.0.3
 ---------------------
 
