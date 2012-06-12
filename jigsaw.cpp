@@ -240,13 +240,13 @@ int main (int argc, char *argv[])
 		fprintf(stderr, " -i,--min-intron       INT    Min intron size for de novo search [%d]\n", opt->min_intron_size);
 		fprintf(stderr, " -e,--min-exon         INT    Min exon size [%d]\n", opt->min_exon_size);
 		fprintf(stderr, " -a,--min-anchor       INT    Min anchor size in de novo single-anchor junction search [%d]\n", opt->min_anchor);
-		fprintf(stderr, " -k,--known-junc-min-anchor	INT Min anchor size for a known junction [%d]\n",opt->known_junc_min_anchor);
+		fprintf(stderr, " -k,--known-junc-min-anchor   INT Min anchor size for a known junction [%d]\n",opt->known_junc_min_anchor);
 //		fprintf(stderr, " -b,--best                    only report the best alignments\n");
 		fprintf(stderr, " -v,--verbose                 Verbose mode\n");
 
 		fprintf(stderr, "\n[advanced options]\n");
-		fprintf(stderr, " --non-single-anchor	       Disable single-anchor de novo junction search \n");
-		fprintf(stderr, " --strand-mode		INT    Strand searching mode, 1:forward, 2: reverse, 3 both. [%d]\n", opt->strand_mode);
+		fprintf(stderr, " --non-single-anchor          Disable single-anchor de novo junction search \n");
+		fprintf(stderr, " --strand-mode         INT    Strand searching mode, 1:forward, 2: reverse, 3 both. [%d]\n", opt->strand_mode);
 		fprintf(stderr, " --min-logistic-prob   FLOAT  Min logistic probability required for an alignment, in the range of [0,1) [%.2f]\n", opt->min_logistic_prob);
 		fprintf(stderr, " --max-overhang        INT    Max # of overhanging nucleotide allowed near junctions [%d]\n", opt->max_overhang);
 		fprintf(stderr, " --max-gapo            INT    Max number or fraction of gap opens [%d]\n", opt->max_gapo);
