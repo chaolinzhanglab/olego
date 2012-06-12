@@ -67,7 +67,7 @@ int main (int argc, char *argv[])
 		fprintf(stderr, "Compiled with OCC_INTERVAL=%d at %s, %s\n\n", OCC_INTERVAL, __TIME__, __DATE__);
 		fprintf(stderr, "Options: -a STR    BWT construction algorithm: bwtsw or is [bwtsw]\n");
 		fprintf(stderr, "         -p STR    prefix of the index [same as fasta name]\n");
-		fprintf(stderr, "         -c        build color-space index\n\n");
+		//fprintf(stderr, "         -c        build color-space index\n\n");
 		fprintf(stderr,	"Warning: `-a bwtsw' does not work for short genomes, while `-a is' and\n");
 		fprintf(stderr, "         `-a div' do not work not for long genomes. Please choose `-a'\n");
 		fprintf(stderr, "         according to the length of the genome.\n\n");
