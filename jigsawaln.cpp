@@ -47,7 +47,7 @@ gap_opt_t *gap_init_opt()
 	o->min_exon_size = 9;
 	o->max_intron_size = 500000;
 	o->min_intron_size = 20;
-	o->single_anchor_search = 0;
+	o->single_anchor_search = 1;
 	o->non_denovo_search = 0;
 	o->strand_mode = 3;
 	o->min_logistic_prob = 0.5;

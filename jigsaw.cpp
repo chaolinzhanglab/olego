@@ -14,7 +14,7 @@
 #include "utils.h"
 
 #ifndef PACKAGE_VERSION
-#define PACKAGE_VERSION "1.0.3"
+#define PACKAGE_VERSION "1.0.4"
 #endif
 
 
@@ -81,10 +81,10 @@ int main (int argc, char *argv[])
 			{"non-denovo",      no_argument,        0, 'n'},
 			{"num-threads",		required_argument, 	0, 't'},
 //			{"best",		no_argument,		0, 'b'},
-			{"single-anchor",	no_argument,		0, 's'},
 			{"verbose",			no_argument, 		0, 'v'},
 
 			/*advanced options*/
+			{"non-single-anchor",	no_argument,		0, 0},
 			{"strand-mode",         required_argument,      0, 0},
 			{"min-logistic-prob",         required_argument,      0, 0},
 			{"max-overhang",    required_argument,  0, 0},
@@ -129,7 +129,7 @@ int main (int argc, char *argv[])
 		case 'e': opt->min_exon_size = atoi (optarg); break;
 		case 'a': opt->min_anchor = atoi(optarg); break;
 		case 'k': opt->known_junc_min_anchor = atoi(optarg); break;
-		case 's': opt->single_anchor_search = 1; break;
+//		case 's': opt->single_anchor_search = 0; break;
 		case 'n': opt->non_denovo_search = 1; break;
 		case 'r': opt->regression_file = optarg; break;
 		case 'j': opt->junction_file = optarg; break;
@@ -189,6 +189,9 @@ int main (int argc, char *argv[])
 			else if (strcmp (long_options[option_index].name, "strand-mode") == 0) {
 				opt->strand_mode = atoi (optarg);
 			}
+			else if (strcmp (long_options[option_index].name, "non-single-anchor") == 0) {
+				opt->single_anchor_search = 0;
+			}
 
 			//	int tmp = optarg;
 			//}
@@ -224,7 +227,7 @@ int main (int argc, char *argv[])
 
 		fprintf(stderr, "\n[basic options]\n");
 		fprintf(stderr, " -o,--output-file      FILE   Output file [stdout]\n");
-		fprintf(stderr, " -s,--single-anchor           Enable single-anchor de novo junction search [disabled]\n");
+
 		fprintf(stderr, " -j,--junction-file    FILE   BED file for known junctions \n");
 		fprintf(stderr, " -n,--non-denovo              Disable de novo junction search \n");
 		fprintf(stderr, " -t,--num-threads      INT    Number of threads [%d]\n", opt->n_threads);
@@ -236,12 +239,13 @@ int main (int argc, char *argv[])
 		fprintf(stderr, " -I,--max-intron       INT    Max intron size for de novo search [%d]\n", opt->max_intron_size);
 		fprintf(stderr, " -i,--min-intron       INT    Min intron size for de novo search [%d]\n", opt->min_intron_size);
 		fprintf(stderr, " -e,--min-exon         INT    Min exon size [%d]\n", opt->min_exon_size);
-		fprintf(stderr, " -a,--min-anchor       INT    Min anchor size in de novo single anchor junction search [%d]\n", opt->min_anchor);
+		fprintf(stderr, " -a,--min-anchor       INT    Min anchor size in de novo single-anchor junction search [%d]\n", opt->min_anchor);
 		fprintf(stderr, " -k,--known-junc-min-anchor	INT Min anchor size for a known junction [%d]\n",opt->known_junc_min_anchor);
 //		fprintf(stderr, " -b,--best                    only report the best alignments\n");
 		fprintf(stderr, " -v,--verbose                 Verbose mode\n");
 
 		fprintf(stderr, "\n[advanced options]\n");
+		fprintf(stderr, " --non-single-anchor	       Disable single-anchor de novo junction search \n");
 		fprintf(stderr, " --strand-mode		INT    Strand searching mode, 1:forward, 2: reverse, 3 both. [%d]\n", opt->strand_mode);
 		fprintf(stderr, " --min-logistic-prob   FLOAT  Min logistic probability required for an alignment, in the range of [0,1) [%.2f]\n", opt->min_logistic_prob);
 		fprintf(stderr, " --max-overhang        INT    Max # of overhanging nucleotide allowed near junctions [%d]\n", opt->max_overhang);

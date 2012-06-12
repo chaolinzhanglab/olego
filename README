@@ -118,7 +118,6 @@ Basic options:
     -o,--output-file	    Name of the output file [ default: stdout ]. This file will be in SAM
 			    format, with some customized tags. Please see the details of the file
 			    format below. 
-    -s,--single-anchor	    Enable single-anchor de-novo junction search. [ default: disabled ].
     -j,--junction-file	    Annotation file for known exon junctions. It is in BED format and please 
 			    see the junc format description below. 
     -n,--non-denovo	    No de novo junction search. Note that if junction annotation file is 
@@ -167,6 +166,7 @@ Advanced options:
     ======================  =================================================================================
     Option		    Description
     ======================  =================================================================================
+    --non-single-anchor	    Disable single-anchor de-novo junction search. [ default: enabled ].
     --strand-mode	    Strand mode (INT). This value should be selected from 1, 2 or 3. For strand 
 			    specific RNA-seq data, please use 1 if the reads should be mapped to the FORWARD 
 			    strand of the RNA, use 2 if the reads should be mapped to the REVERSE strand. If 
@@ -257,8 +257,8 @@ Options:
     ====================  =============================================================================
     --uniq		    Only output uniquely mapped reads. The script identifies unique reads
 			    by the tag "XT:A:U".
-    --use-read-strand	    Use the strand of the read. By default, this script uses the strand of the 
-			    RNA based on the XS tag. 
+    --use-RNA-strand	    Use the strand of the RNA based on the XS tag. By default, this script uses
+			    the strand of the read. 
     -v			    Verbose.
     ====================  =============================================================================    
 
@@ -374,29 +374,29 @@ An example pipeline for strandard Illumina RNA-seq data::
     olegoindex -a bwtsw mm9.fa (all chromosomes combined)
     # build your BWT index
 
-    olego -v -s -t 16 -o f.sam ~/mz-local/database/mm9/genome/olego/mm9.fa f.fa
-    # do the mapping with single-anchor search enabled, with 16 cpu cores, output to f.sam
+    olego -v -t 16 -o f.sam ~/mz-local/database/mm9/genome/olego/mm9.fa f.fa
+    # do the mapping with 16 CPU cores, output to f.sam
 
-    olego -v -s -t 16 -o r.sam ~/mz-local/database/mm9/genome/olego/mm9.fa r.fa
+    olego -v -t 16 -o r.sam ~/mz-local/database/mm9/genome/olego/mm9.fa r.fa
     # do the same thing for the other file
 
     mergePEsam.pl f.sam r.sam merge.sam
     # merge both ends into merge.sam
 
-    sam2bed.pl merge.sam merge.bed
+    sam2bed.pl --use-RNA-strand merge.sam merge.bed
     # convert the SAM file to BED file
 
     bed2junc.pl merge.bed merge.junc
     # find the junctions in the BED file
 
-    olego -v -s -t 16 -o f.remap.sam -j merge.junc --non-denovo ~/mz-local/database/mm9/genome/olego/mm9.fa f.fa
-    olego -v -s -t 16 -o r.remap.sam -j merge.junc --non-denovo ~/mz-local/database/mm9/genome/olego/mm9.fa r.fa
+    olego -v -t 16 -o f.remap.sam -j merge.junc --non-denovo ~/mz-local/database/mm9/genome/olego/mm9.fa f.fa
+    olego -v -t 16 -o r.remap.sam -j merge.junc --non-denovo ~/mz-local/database/mm9/genome/olego/mm9.fa r.fa
     # do a remapping to rescue more reads, no more de novo mapping here since we already used a junction annotation. 
 
 Example commands for strand specific RNA-seq data::
 
-    olego -v -s -t 16 -o f.sam --strand-mode 1 ~/mz-local/database/mm9/genome/olego/mm9.fa f.fa
+    olego -v -t 16 -o f.sam --strand-mode 1 ~/mz-local/database/mm9/genome/olego/mm9.fa f.fa
     # when you know that the reads should be mapped onto the forward strand of the transcripts
 
-    olego -v -s -t 16 -o r.sam --strand-mode 2 ~/mz-local/database/mm9/genome/olego/mm9.fa r.fa
+    olego -v -t 16 -o r.sam --strand-mode 2 ~/mz-local/database/mm9/genome/olego/mm9.fa r.fa
     # the other end should be on the reverse strand according to the protocol

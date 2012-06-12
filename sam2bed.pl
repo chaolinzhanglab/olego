@@ -13,11 +13,11 @@ my $prog = basename ($0);
 my $pairedEnd = 0;
 my $printUniqOnly = 0;
 my $verbose = 0;
-my $useReadStrand = 0; # use the strand of the read instead of the RNA
+my $useRNAStrand = 0; # use the strand of the RNA instead of the read
 
 GetOptions (
 	"uniq"=>\$printUniqOnly,
-	"use-read-strand"=>\$useReadStrand,    
+	"use-RNA-strand"=>\$useRNAStrand,    
 	"v|verbose"=>\$verbose);
 
 if (@ARGV != 2 && @ARGV != 3)
@@ -26,7 +26,7 @@ if (@ARGV != 2 && @ARGV != 3)
 	print "Usage: $prog [options] <in.sam> <out.bed>\n";
 	#print " -p: paired-end data\n";
 	print "--uniq : print uniquely mapped reads only\n";
-	print "--use-read-strand: force to use the strand of the read, \n";
+	print "--use-RNA-strand: force to use the strand of the RNA based on the XS tag \n";
 	print " -v    : verbose\n";
 	exit (1);
 }
@@ -73,7 +73,7 @@ while (my $line = <$fin>)
 	#next unless $flagInfo->{'query_map'};
 
 	my $strand = $flagInfo->{'query_strand'};
-	if(!$useReadStrand)
+	if($useRNAStrand)
 	{
 	    if ($TAG=~/XS\:\S*\:([-+\.])/)
 	    {

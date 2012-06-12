@@ -1,3 +1,15 @@
+commit cfc673a4a2f0b9f5f1147eaaeb8d16297fd9859a
+Author: wuj <wuj@cshl.edu>
+Date:   Mon Jun 11 22:24:06 2012 -0400
+
+    some changes on the options, non-single-anchor and use-RNA-strand
+
+commit fb7a8370ddd54c430619be85614c89d9b651570d
+Author: wuj <wuj@cshl.edu>
+Date:   Sun Jun 10 14:44:33 2012 -0400
+
+    ready for 1.0.3
+
 commit f2f447236bcc3014e98c8abcade608782439f13b
 Author: wuj <wuj@cshl.edu>
 Date:   Wed Jun 6 15:57:56 2012 -0400
