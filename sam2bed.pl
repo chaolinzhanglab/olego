@@ -10,43 +10,46 @@ use Getopt::Long;
 
 
 my $prog = basename ($0);
-my $pairedEnd = 0;
+my $separateBed = 0;
 my $printUniqOnly = 0;
 my $verbose = 0;
 my $useRNAStrand = 0; # use the strand of the RNA instead of the read
 
 GetOptions (
-	"uniq"=>\$printUniqOnly,
-	"use-RNA-strand"=>\$useRNAStrand,    
+	"u|uniq"=>\$printUniqOnly,
+	"r|use-RNA-strand"=>\$useRNAStrand,
+#	"s|separate-bed"=>\$separateBed, 
 	"v|verbose"=>\$verbose);
 
 if (@ARGV != 2 && @ARGV != 3)
 {
 	print "Converts OLego SAM format to BED format, works for paired end data and saves into a single BED file, only reports the major alignments. \n";
-	print "Usage: $prog [options] <in.sam> <out.bed>\n";
+	print "Usage: $prog [options] <in.sam> <out1.bed> [out2.bed]\n\n";
+	print "Please specify both out1.bed and out2.bed if you want the paired-end reads output into two separate BED files.\n";
 	#print " -p: paired-end data\n";
-	print "--uniq : print uniquely mapped reads only\n";
-	print "--use-RNA-strand: force to use the strand of the RNA based on the XS tag \n";
-	print " -v    : verbose\n";
+	print "-u,--uniq:		print uniquely mapped reads only\n";
+	print "-r,--use-RNA-strand:	force to use the strand of the RNA based on the XS tag \n";
+#	print "-s,--separate-bed:	for paired-end input, output two separate BED outputs \n";
+	print "-v,--verbose:		verbose\n";
 	exit (1);
 }
 
 my ($inSAMFile, $outBedFile) = @ARGV;
-#my $outBedFile2 = "";
-#if (@ARGV == 3)
-#{
-#	$outBedFile2 = $ARGV[2];
-#	$pairedEnd = 1;
-#}
+my $outBedFile2 = "";
+if (@ARGV == 3)
+{
+	$outBedFile2 = $ARGV[2];
+	$separateBed = 1;
+}
 
-my ($fin, $fout);
+my ($fin, $fout, $fout2);
 
 open ($fin, "<$inSAMFile") || Carp::croak "cannot open file $inSAMFile to read\n";
 open ($fout, ">$outBedFile") || Carp::croak "cannot open file $outBedFile to write\n";
-#if ($pairedEnd)
-#{
-#	open ($fout2, ">$outBedFile2") || Carp::croak "cannot open file $outBedFile2 to write\n";
-#}
+if ($separateBed)
+{
+	open ($fout2, ">$outBedFile2") || Carp::croak "cannot open file $outBedFile2 to write\n";
+}
 
 
 my $i = 0;
@@ -69,7 +72,7 @@ while (my $line = <$fin>)
 	#print $line, "\n";
 	my $flagInfo = decodeSAMFlag ($FLAG);
 	#Carp::croak Dumper ($flagInfo), "\n";
-	#Carp::croak "inconsistency in specifying PE or SE data\n" if ($flagInfo->{'PE'} + $pairedEnd == 1);
+	Carp::croak "inconsistency in specifying PE or SE data\n" if ($flagInfo->{'PE'}==0 &&  $separateBed == 1);
 	#next unless $flagInfo->{'query_map'};
 
 	my $strand = $flagInfo->{'query_strand'};
@@ -185,23 +188,26 @@ while (my $line = <$fin>)
 	$outStr = join ("\t", $chrom, $chromStart, $chromEnd + 1, $name, $score, $strand,
 		$chromStart, $chromEnd + 1, 0, $blockCount, join (",", @blockSizes), join(",", @blockStarts));
 
-#	if ($pairedEnd && $read1_or_2 == 2)
-#	{
-#		print $fout2 $outStr, "\n" unless $printUniqOnly == 1 && $uniq == 0; # unless $flagInfo->{'mate_map'};
-#	}
-#	else
-#	{
+	if ($separateBed && $read1_or_2 == 2)
+	{
+	        if ($printUniqOnly == 0 || $uniq == 1)
+		{
+		    print $fout2 $outStr, "\n"  unless $flagInfo->{'query_map'};
+		}
+	}
+	else
+	{
 		if ($printUniqOnly == 0 || $uniq == 1)
 		{
 			print $fout $outStr, "\n" unless $flagInfo->{'query_map'};
 		}
-#	}
+	}
 }
 
 
 close ($fin);
 close ($fout);
-#close ($fout2) if $pairedEnd;
+close ($fout2) if $separateBed;
 
 
 sub decodeSAMFlag

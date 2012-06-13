@@ -88,7 +88,6 @@ Options:
     ========    ==================================================================
     -a		BWT construction algorithm: bwtsw or is [default: bwtsw]
     -p		prefix of the index [default: the same as the fasta file name]
-    -c		build color-space index
     ========    ==================================================================
 	
 Caution: please use "-a bwtsw" for long genome (like human or mouse genome).
@@ -253,16 +252,26 @@ This script converts SAM format output from OLego into BED format file. Only the
 
 Usage::
 	
-	perl sam2bed.pl [options] <in.sam> <out.bed>
+	perl sam2bed.pl [options] <in.sam> <out1.bed> [out2.bed]
+
+Arguments:
+
+    ======================  =============================================================================
+    Argument		    Description
+    ======================  =============================================================================
+    <in.sam>		    The SAM input file from OLego.
+    <out1.bed> [out2.bed]   Please specify two BED files if you want Paired-end reads output into
+			    separate BED files, otherwise, all the reads will be output into out1.bed.
+    ======================  =============================================================================
 
 Options:
 
     ====================  =============================================================================
     Option		    Description
     ====================  =============================================================================
-    --uniq		    Only output uniquely mapped reads. The script identifies unique reads
+    -u,--uniq		    Only output uniquely mapped reads. The script identifies unique reads
 			    by the tag "XT:A:U".
-    --use-RNA-strand	    Use the strand of the RNA based on the XS tag. By default, this script uses
+    -r,--use-RNA-strand	    Use the strand of the RNA based on the XS tag. By default, this script uses
 			    the strand of the read. 
     -v			    Verbose.
     ====================  =============================================================================    
