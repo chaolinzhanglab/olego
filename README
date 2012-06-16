@@ -137,10 +137,10 @@ Basic options:
 			    species. Please see its usage below. 
     -M,--max-total-diff	    Maximum total difference between query read and reference sequence. 
 			    Either INT or FLOAT number can be used for this option. An INT number 
-			    will specify the maximum total edit distance allowed for each alignment 
-			    [ default: 4 ]. A FLOAT number will specify the fraction of missing 
-			    alignments given 2% uniform base error rate [default: 0.04 ]. This
-			    parameter is the same as -n in BWA. 
+			    will specify the maximum total edit distance allowed for each alignment.
+			    A FLOAT number will specify the fraction of missing alignments given 2% 
+			    uniform base error rate. This parameter is the same as -n in BWA. [default: 
+			    a FLOAT number 0.04 ]
     -w,--word-size	    The size of the seed used in junction search (INT) [ default: 14 ]. 
 			    The default seed size is recommended for reads >100 nt. For shorter
 			    reads, a smaller number can be used. e.g., 12 nt for 36 nt reads. The 
