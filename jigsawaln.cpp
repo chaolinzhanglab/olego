@@ -3033,7 +3033,7 @@ void jigsaw_concat_junctions (list <jigsaw_junction_t*> *junctions, int len,
 			curr_aln = *aln_iter;
 			//get the last junction in the current alignment
 			jigsaw_junction_t *last = curr_aln->junctions->back();
-			if (last->dexon == curr_p->uexon && last->sense_strand == curr_p->sense_strand) { 
+			if (last->dexon == curr_p->uexon && last->sense_strand == curr_p->sense_strand && last->start_q < curr_p->start_q) { 
 			    //the uexon of this junction (curr_p) matches the upstream dexon in aln
 			    //make a copy of curr_aln
 			    jigsaw_spliced_aln_t *curr_aln_copy = (jigsaw_spliced_aln_t *) calloc (1, sizeof (jigsaw_spliced_aln_t));
