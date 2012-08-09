@@ -203,7 +203,7 @@ while (my $line = <$fin>)
 		}
 	}
 }
-
+print "Done! Totally $i lines processed! \n" if $verbose;
 
 close ($fin);
 close ($fout);

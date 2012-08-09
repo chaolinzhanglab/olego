@@ -2,7 +2,7 @@ OLego -- short or long RNA-seq read mapping to discover exon junction
 
 Jie Wu (wuj@cshl.edu), Chaolin Zhang (czhang@rockefeller.edu)
 
-Updated on May 30, 2012
+Updated on Aug. 9th, 2012
 
 We are updating the manual frequently, so please check regularly for updates! 
 
@@ -17,18 +17,30 @@ OLego is an open source code project and released under GPLv3. The implementatio
 Versions
 ======================
 
-v1.0.4
+v1.0.6 ( 08-09-2012 )
+---------------------
+
+* Added option --max-multi (default:1000) to avoid huge data in a single line.
+* Added option --num-reads-batch.
+* Fixed a bug in the junction connecting step.
+
+v1.0.5 ( 07-16-2012 )
+---------------------
+
+* Minor bug fixed (the old code crashes in a very rare case).
+
+v1.0.4 ( 06-12-2012 )
 ---------------------
 
 * Option changes ( do single-anchor search by default now ). 
 
-v1.0.3
+v1.0.3 ( 06-10-2012 )
 ---------------------
 
 * Now supports strand specific library
 * Fixed bugs about XS
 
-v1.0.0
+v1.0.0 ( 05-15-2012 )
 ----------------------
 
 * The initial Public release
@@ -42,7 +54,7 @@ The major programs of OLego ( olego and olegoindex ) can be installed and ran on
 Download
 ======================
 
-The code and binary files can be found at http://sourceforge.net/projects/ngs-olego/files/ , we are regularly updating the code, so please check back regularly to keep your code updated. The code can also be reached via git::
+The code and binary files can be found at http://sourceforge.net/projects/ngs-olego/files/ , we are regularly updating the code, so please check regularly to keep your code updated. The code can also be reached via git::
 
 	git clone git://git.code.sf.net/p/ngs-olego/code ngs-olego-code
 
@@ -176,6 +188,7 @@ Advanced options:
 			    strand of the RNA, use 2 if the reads should be mapped to the REVERSE strand. If 
 			    the library is not strand specific, please use 3 to allow mapping onto both 
 			    strands. [ default: 3 ]
+    --max-multi		    Maximum number of alignments reported for multiple mappers. [ default: 1000 ]
     --min-logistic-prob	    Minimum logistic probablity for an alignment, calculated with the splice sites
 			    motif and intron size, in the range of [0,1) [ default: 0.50]. A higher number
 			    means more stringent filter, we don't recommend using high value since more true
@@ -193,8 +206,8 @@ Advanced options:
     --penalty-gapo	    Gap open penalty for querying involving BWT [ default: 11 ]
     --penalty-gape	    Gap extension penalty for querying involving BWT [ default: 4 ]
     --log-gap		    log-scaled gap penalty for long deletions for querying involving BWT. 
-    --max-entries	    Maximum entries in the queue [2000000]. This number of reads will be loaded into
-			    the memory for processing. 
+    --num-reads-batch	    This number of reads will be loaded into the memory for processing in each batch.
+			    [4*16**4 = 262144]
     --none-stop             non-iterative mode: search for all n-difference hits in the BWT query (slooow).
     ======================  =================================================================================
 
@@ -224,16 +237,20 @@ Arguments:
     
 Options:
 
-    ======  ==============================================================================
-    Option  Description
-    ======  ==============================================================================
-    -d	    Maximum distance between the two ends on the reference [ default:5000000 ].
-    --ss    Require the read-pair mapped to the same strand. By default, we require the
-	    two ends mapped to different strands, which is the case in strandard Illumina 
-	    RNA-seq data. 
-    --ns    Do not use strand information as a filter. 
-    -v	    Verbose.
-    ======  ==============================================================================
+    ===========================  ==============================================================================
+    Option                       Description
+    ===========================  ==============================================================================
+    -d	                         Maximum distance between the two ends on the reference [ default:5000000 ].
+    --ss, --same-strand          Require the read-pair mapped to the same strand. By default, we require the
+                                 two ends mapped to different strands, which is the case in strandard Illumina 
+	                         RNA-seq data. 
+    --ns, --no-strand            Do not use strand information as a filter. 
+    --nci, --no-check-input      Do not check if the read names in the input files are matched. By default, the
+	                         script will check if the read names from the two ends are similar to make sure
+	                         the lines are correctly matched. Please use this option if your read names are
+	                         in a uncomparable format.
+    -v	                         Verbose.
+    ===========================  ==============================================================================
 
 xa2multi.pl
 ^^^^^^^^^^^^^^^^^^^^^

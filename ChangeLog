@@ -1,104 +1,727 @@
-commit defd1572e058d65086fd544e5524a7edc1a55aad
+commit 815f4eaec68d172f43fb2f57b407e40456cd0cfc
 Author: wuj <wuj@cshl.edu>
-Date:   Mon Jul 16 15:54:08 2012 -0400
+Date:   Thu Aug 9 13:30:39 2012 -0400
 
-    v1.0.5 (minor bug fixed)
+    ready for 1.0.6
 
-commit 7590a6e4c0ee1c98a9ab26d4ce4cec1bafc61be5
+commit c0f5ec3435310e0154157689a96e0128f7f33342
 Author: wuj <wuj@cshl.edu>
-Date:   Sat Jun 16 00:04:08 2012 -0400
+Date:   Thu Aug 9 12:33:11 2012 -0400
+
+    ...
+
+commit 655b3c28cf317c99fd1f718efa1fa492717dbbc9
+Author: wuj <wuj@cshl.edu>
+Date:   Thu Aug 9 12:31:56 2012 -0400
+
+    minor fixes
+
+commit 067f0d1fec414efae37be7f50161eab04aa83ff7
+Author: wuj <wuj@cshl.edu>
+Date:   Thu Aug 9 12:25:27 2012 -0400
+
+    minor edits
+
+commit 6d0a8a4261346ece273a718bb41cb55c810a0df2
+Author: wuj <wuj@cshl.edu>
+Date:   Thu Aug 9 11:51:45 2012 -0400
+
+    some minor edits obout logging and error detection
+
+commit 4e46dd049ab282ca22cd689a9f718d1ff5fd3018
+Author: wuj <wuj@cshl.edu>
+Date:   Tue Aug 7 23:14:00 2012 -0400
+
+    fixed a bug in the junction connecting step
+
+commit b716cadf4c54e264361e5c679517f1c52bea5744
+Author: wuj <wuj@cshl.edu>
+Date:   Fri Aug 3 18:02:45 2012 -0400
+
+    limit the number of multiple alignments to 1000 by default to avoid huge lines in the output. also add an option for this : max-multi
+
+commit 41276d6b2df0992dd49516c46f049e83442da4ae
+Author: wuj <wuj@cshl.edu>
+Date:   Fri Aug 3 17:01:38 2012 -0400
+
+    removed option max-entries
+    add an option: number of reads per batch
+
+commit 2e5454186461bca3d9a7433f2339abb117423f29
+Author: wuj <wuj@cshl.edu>
+Date:   Sun Jul 15 23:21:18 2012 -0400
+
+    minor fix on a bug for rare case: when the upstream part of a read could be mapped to a junction downstream of the downstream part of the read.
+
+commit 21c867fd907b68988a44a2abf2a38502b0fccf73
+Author: wuj <wuj@cshl.edu>
+Date:   Fri Jun 15 23:51:30 2012 -0400
+
+    minor change in README
+
+commit f7f765f36139e605b4470d97e2e9b9b876b92193
+Author: wuj <wuj@cshl.edu>
+Date:   Wed Jun 13 13:36:28 2012 -0400
+
+    minor change in README
+
+commit d5e63399d924f0ae2cf6ee45179df9d98472ecbe
+Author: wuj <wuj@cshl.edu>
+Date:   Wed Jun 13 13:30:17 2012 -0400
+
+    changes on sam2bed.pl to allow separate BED outputs
+
+commit 086d9521a73719cf0e6e5d71edf33eceb8e8d592
+Author: wuj <wuj@cshl.edu>
+Date:   Mon Jun 11 22:40:47 2012 -0400
+
+    minor changes in README
+
+commit 1c82e99bb2f4f18e4d2794b0424950fb785c9a13
+Author: wuj <wuj@cshl.edu>
+Date:   Mon Jun 11 22:25:37 2012 -0400
+
+    Changelog, for version 1.0.4
+
+commit cfc673a4a2f0b9f5f1147eaaeb8d16297fd9859a
+Author: wuj <wuj@cshl.edu>
+Date:   Mon Jun 11 22:24:06 2012 -0400
+
+    some changes on the options, non-single-anchor and use-RNA-strand
+
+commit fb7a8370ddd54c430619be85614c89d9b651570d
+Author: wuj <wuj@cshl.edu>
+Date:   Sun Jun 10 14:44:33 2012 -0400
+
+    ready for 1.0.3
+
+commit f2f447236bcc3014e98c8abcade608782439f13b
+Author: wuj <wuj@cshl.edu>
+Date:   Wed Jun 6 15:57:56 2012 -0400
+
+    bug about strand-mode fixed
+
+commit 0dde2dcc962c11cbc942df299652940720b8c499
+Author: wuj <wuj@cshl.edu>
+Date:   Sun Jun 3 22:11:42 2012 -0400
+
+    fixed a bug in the junction_concate
+    fixed a minor warning bug
+
+commit 51d77e909b4992e1a9db31cc5674291c4def70f9
+Author: wuj <wuj@cshl.edu>
+Date:   Thu May 31 16:49:27 2012 -0400
+
+    Changes in README
+
+commit 3bb9ef248c4ee4d7498553ea0783987ac1a1141b
+Author: wuj <wuj@cshl.edu>
+Date:   Wed May 30 23:20:43 2012 -0400
+
+    fixed XS tag, modified the Perl scripts for more accurate strand processing
+
+commit cab072f2602bf2bdedd831c9ebcf1b9880c9a074
+Author: wuj <wuj@cshl.edu>
+Date:   Mon May 28 15:58:53 2012 -0400
+
+    option strand_mode added for strand specific libs
+
+commit b8a088f5db03a97c086f516c2ac280bcf19caccc
+Author: wuj <wuj@cshl.edu>
+Date:   Wed May 16 11:03:10 2012 -0400
+
+    minor fix
+
+commit fd730024bc6cd04d54459e96d4959180c127e28c
+Author: wuj <wuj@cshl.edu>
+Date:   Tue May 15 18:05:19 2012 -0400
+
+    minor fix in README
+    version number fix
+
+commit 05111b657836935184ed25f08397a7d1af1d281a
+Author: wuj <wuj@cshl.edu>
+Date:   Tue May 15 15:54:50 2012 -0400
+
+    add ChangeLog
+
+commit c84018c2c712c30972e674e864e3949a22a8a836
+Merge: 569fdd4 4259de9
+Author: wuj <wuj@cshl.edu>
+Date:   Tue May 15 14:50:10 2012 -0400
+
+    Merge branch 'master' of ssh://git.code.sf.net/p/ngs-jigsaw/code
+    
+    Conflicts:
+    	README
+
+commit 569fdd4e9371da4a25c8f71c76ca06851c6ee0a5
+Author: wuj <wuj@cshl.edu>
+Date:   Tue May 15 14:36:56 2012 -0400
+
+    edits on readme and options
+
+commit 4259de9fc83afa595e08772a6a012090537b5ae7
+Author: Chaolin Zhang <czhang@rockefeller.edu>
+Date:   Tue May 15 14:09:57 2012 -0400
+
+    I made some small edits in README and INSTALL
+    
+    I also changed the default of -a in olegoindex to bwtsw, which is for
+    mammalian genomes.
+
+commit fc2afc0a6e67e5859399910942c3b59f64e5f888
+Author: wuj <wuj@cshl.edu>
+Date:   Tue May 8 09:53:03 2012 -0400
+
+    	modified:   README
+    	modified:   common.mk
+    minor modification on readme
+
+commit ce8f5ee134d2c81c4fdba7e0ee83574a92f864e9
+Author: Chaolin Zhang <czhang@rockefeller.edu>
+Date:   Sun May 6 10:52:50 2012 -0400
+
+    small restructure
+
+commit c29899b8772f289fe7630fb93677757958b1f669
+Author: Chaolin Zhang <czhang@rockefeller.edu>
+Date:   Sun May 6 10:52:15 2012 -0400
+
+    small restructure
+
+commit 66e8552be73526bed3941b4bb185b1f5e4039bd8
+Author: Chaolin Zhang <czhang@rockefeller.edu>
+Date:   Sun May 6 10:48:38 2012 -0400
+
+    some reorganization
+
+commit 2d0ded970c0948736d1f4f81f5667d4e68cb374a
+Author: Chaolin Zhang <czhang@rockefeller.edu>
+Date:   Sun May 6 10:45:43 2012 -0400
+
+    changed Makefile to remove MACHTYPE; adjusted usage info and some
+    options
+
+commit 07d4b898b3bd83f86b5121e128797a274df443fc
+Author: wuj <wuj@cshl.edu>
+Date:   Thu May 3 16:34:08 2012 -0400
+
+    edits on readme
+
+commit a66ee1affa82faaa500de66239acef316c69792d
+Author: wuj <wuj@cshl.edu>
+Date:   Wed May 2 23:43:30 2012 -0400
+
+    add XT and XS(strand) tags
+
+commit ab978ffd7f17ed3481e6a950983b0e42b9751c03
+Author: wuj <wuj@cshl.edu>
+Date:   Wed May 2 22:31:38 2012 -0400
+
+    add mm9 model
+    add regression pipeline
+
+commit 99db9c8af0e98d8ad99646338617e15885a33f4a
+Author: wuj <wuj@cshl.edu>
+Date:   Fri Apr 20 11:56:50 2012 -0400
+
+    minor changes
+
+commit 5f9090221691f3bb0974419836213e7a0a0d0f89
+Author: wuj <wuj@cshl.edu>
+Date:   Wed Apr 18 17:52:44 2012 -0400
+
+    more details in mergePEsam.pl
+    	modified:   mergePEsam.pl
+
+commit ebb1ba110fe6d7517198ea1916b8a953814086c4
+Author: wuj <wuj@cshl.edu>
+Date:   Wed Apr 11 18:15:43 2012 -0400
+
+    Write some details in README, fixed some small bugs about logic, add known_junc_min_anchor option, tweet on the screen output, tweet on the options
+    
+    	modified:   README
+    	modified:   jigsaw.cpp
+    	modified:   jigsawaln.cpp
+    	modified:   jigsawaln.h
+
+commit 8ca28ef1829dfd60528c6a263ae0ec522f7d9a7b
+Author: wuj <wuj@cshl.edu>
+Date:   Sun Mar 25 13:36:49 2012 -0400
+
+    now work with configuration file for regression model
+    added hg18.cfg
+    	modified:   jigsaw.cpp
+    
+    	modified:   jigsawaln.cpp
+    	modified:   jigsawaln.h
+    	new file:   models/hg18.cfg
+    	modified:   splicescore.cpp
+    	modified:   splicescore.h
+
+commit 7bef7e193ec610f986f1d7c6e84d043d98bdae27
+Merge: 19ba2d7 34076d1
+Author: Chaolin Zhang <zhangc@okito.rockefeller.edu>
+Date:   Mon Feb 27 14:11:41 2012 -0500
+
+    Merge branch 'master' of ssh://git.code.sf.net/p/ngs-jigsaw/code
+
+commit 19ba2d79a854b419c944a99681d19fedc28515f3
+Author: Chaolin Zhang <zhangc@okito.rockefeller.edu>
+Date:   Mon Feb 27 14:10:13 2012 -0500
+
+    improved sam2bed.pl so that it can parse more complex CIGAR string
+
+commit 34076d1735171fce6bc0c0c0dc5a80ebb619c157
+Merge: b2e4875 dfe8a69
+Author: wuj <wuj@cshl.edu>
+Date:   Wed Feb 22 18:28:56 2012 -0500
+
+    Merge branch 'master' of ssh://git.code.sf.net/p/ngs-jigsaw/code
+
+commit b2e4875630d7321e7e71cf5460a026f59eb7af51
+Author: wuj <wuj@cshl.edu>
+Date:   Wed Feb 22 18:28:09 2012 -0500
+
+    	new file:   INSTALL
+    	modified:   README
+    write something in these files as simple directions
+
+commit dfe8a69c99f88d8e052e88d77d87710c1a8d10ab
+Author: Chaolin Zhang <zhangc@okito.rockefeller.edu>
+Date:   Mon Feb 20 14:28:58 2012 -0500
+
+    minor change in mergePESam.pl
+
+commit 987ebf74d88e69e6844e7e4fc0f024c0b1faf4d5
+Author: Chaolin Zhang <czhang@rockefeller.edu>
+Date:   Sun Feb 19 16:12:54 2012 -0500
 
     minor change
 
-commit f9be7e4c77fb8208f74c58cf1ece212d94f88802
+commit ae21fa1d292b43500d52cdbbf8033c9be0ab5719
+Merge: d4a9564 e4f4bd2
 Author: wuj <wuj@cshl.edu>
-Date:   Wed Jun 13 13:37:45 2012 -0400
+Date:   Sun Feb 19 12:36:15 2012 -0500
 
-    changes in sam2bed to allow separate BED outputs for PE data
+    Merge branch 'master' of ssh://git.code.sf.net/p/ngs-jigsaw/code
 
-commit 0309e5b34d476ee93a7e6abf872a16f18ac1768a
+commit d4a956484b52579eaee449186f832c0f71309e5b
+Author: wuj <wuj@cshl.edu>
+Date:   Sun Feb 19 12:34:30 2012 -0500
+
+    	new file:   mergePEsam.pl
+    	a simple code to merge PE reads
+
+commit e4f4bd2d97f57ab16efcf5e69df0fe95e2b93acd
 Author: Chaolin Zhang <zhangc@okito.rockefeller.edu>
-Date:   Tue Jun 12 16:35:46 2012 -0400
+Date:   Tue Feb 14 22:25:25 2012 -0500
 
-    removed the -c option in olegoindex
+    small fixes
 
-commit 478722413655017574e5970b6f0f2d364e035774
+commit 677f036257e42d3bb511f0209e84db16e5fa480c
+Author: Chaolin Zhang <czhang@rockefeller.edu>
+Date:   Tue Feb 14 21:13:45 2012 -0500
+
+    OCC_INTERVAL is different in index and alignment, so the one in Makefile
+    is turned off
+
+commit 4abcf64ac14686f1afb28f90a8cedc4eb2f65cf1
+Author: Chaolin Zhang <czhang@rockefeller.edu>
+Date:   Tue Feb 14 19:59:05 2012 -0500
+
+    OCC_INTERVAL can not specified in Makefile
+
+commit 1088f613f8be0f9409fd8d1fe68901127dad9e63
+Author: Chaolin Zhang <czhang@rockefeller.edu>
+Date:   Sun Feb 12 20:50:55 2012 -0500
+
+    minor change
+
+commit 4401c033e1639d9df8b96e747615897968e34e10
 Author: Chaolin Zhang <zhangc@okito.rockefeller.edu>
-Date:   Tue Jun 12 09:19:22 2012 -0400
+Date:   Sun Feb 12 14:41:09 2012 -0500
 
-    very minor change, aligned the usage information
+    minor change in usage information
 
-commit f7d3d0b82100c29de3f0dfc4aa023250713f2496
+commit 60ce85cc3910a1ae31e47852142419ef773fb2f8
+Author: Chaolin Zhang <zhangc@okito.rockefeller.edu>
+Date:   Sun Feb 12 14:34:24 2012 -0500
+
+    small fix of compilation options on linux
+
+commit 9397ba80614cea1016e2766e7590aadff28ed8a2
+Author: Chaolin Zhang <czhang@rockefeller.edu>
+Date:   Sun Feb 12 12:25:37 2012 -0500
+
+    add common.mk
+
+commit ebcff040911bc474b48a9d58854bb4d0cef87e5a
+Author: Chaolin Zhang <czhang@rockefeller.edu>
+Date:   Sat Feb 11 21:27:20 2012 -0500
+
+    deleted obsolete folder
+
+commit 8a7e89916f609419c8db2e944da63bc58bf68609
+Author: Chaolin Zhang <czhang@rockefeller.edu>
+Date:   Sat Feb 11 21:26:08 2012 -0500
+
+    add cz and kent actually
+
+commit fad62ceca48754e09a0004234f9bb4755a0ad763
+Author: Chaolin Zhang <czhang@rockefeller.edu>
+Date:   Sat Feb 11 21:23:42 2012 -0500
+
+    included kent and cz lib files so that the package is self-contained
+
+commit 934adc4771d867f9e425dc4c333adc9644f108f6
 Author: wuj <wuj@cshl.edu>
-Date:   Mon Jun 11 22:42:26 2012 -0400
+Date:   Mon Feb 6 22:56:44 2012 -0500
 
-    monor changes
-
-commit 8f0bdcb00a0acda14f5e611368041f61aa455ff3
-Author: wuj <wuj@cshl.edu>
-Date:   Mon Jun 11 22:30:38 2012 -0400
-
-    v1.0.4, please see details in ChangeLog
-
-commit 4448f51e9c6458da6b21c5b491eba3cc356820ec
-Author: wuj <wuj@cshl.edu>
-Date:   Sun Jun 10 14:50:51 2012 -0400
-
-    version 1.0.3
-
-commit da0700bb4710da5f86855a92757bb6f41e58b31e
-Author: wuj <wuj@cshl.edu>
-Date:   Wed May 16 11:06:53 2012 -0400
-
-    	new file:   ChangeLog
-    	modified:   README
+    	store all inner exon matches into the memory now instead of only output the first found match.
+    	add min_small_exon option
+    	a little bit bug fixing
     	modified:   jigsaw.cpp
+    	modified:   jigsawaln.cpp
+    	modified:   jigsawaln.h
 
-commit 8ad7c0314f3eeeec2134a7278f44c862e289826b
-Author: Chaolin Zhang <czhang@rockefeller.edu>
-Date:   Tue May 15 21:46:57 2012 -0400
-
-    small fix in README
-
-commit d1c178dadb0e71e364846247039418f65a2690ae
-Author: Chaolin Zhang <czhang@rockefeller.edu>
-Date:   Tue May 15 21:42:15 2012 -0400
-
-    removed some obsolete files
-
-commit cafeaa4ec959816aefb314ecde64b453927fbdd4
+commit 05ac54376bc180dba3495d27f2b1b0709c9a0ae0
 Author: wuj <wuj@cshl.edu>
-Date:   Tue May 15 16:20:35 2012 -0400
+Date:   Sun Feb 5 23:13:08 2012 -0500
 
-    The v1.0.0 release
+    	modified:   jigsawaln.cpp
+    	write the code for non-denovo small exon searching
+    	tweats on local_max_diff s to balance between speed and accuracy
 
-commit d94e44c3ed481090909604dd4e3f56cda4b46495
+commit e8523020a216facb7a57b3912c861f37a563a695
 Author: wuj <wuj@cshl.edu>
-Date:   Tue May 8 09:58:25 2012 -0400
+Date:   Fri Jan 20 15:56:20 2012 -0500
+
+    enable small exon search in non-denovo search
+
+commit 9b5c0a90347cc42ab7e48b68ea01e56a9dffdc6a
+Author: wuj <wuj@cshl.edu>
+Date:   Fri Jan 20 14:58:40 2012 -0500
+
+        now the code will do exonic and spliced alignments for all reads which do not have perfect exonic match
+    
+        the exonic alignments will be recovered in the end of the spliced aln, we should find more alignments and won't miss  exon body reads. The accuracy should be improved too, since diffs between body and junction alignments are comparable
+    	modified:   jigsawaln.cpp
+
+commit 1108e514b4878d5f783c1945890dc18f204475a2
+Author: wuj <wuj@cshl.edu>
+Date:   Wed Jan 18 22:28:45 2012 -0500
+
+    fixed a bug (negative intron size when using small min_intron size like 20)
+    add timing (wall and cpu time)
+
+commit d3d6f4d86453182956afe2d16fb9a0a9dfdcd2a2
+Author: wuj <wuj@cshl.edu>
+Date:   Sun Jan 15 00:06:46 2012 -0500
+
+    	modified:   jigsawaln.cpp
+    reset the default parameteres
+    fixed a bug in small exon search, avoid negative intron size
+
+commit e357b2776e2f020a7e439c626081a2dda812296a
+Author: wuj <wuj@cshl.edu>
+Date:   Wed Jan 11 14:08:16 2012 -0500
+
+    a little bit optimized, speed up for more mismatches
+
+commit 22fafa22eef527d24c57c83454d63b60def616f9
+Author: wuj <wuj@cshl.edu>
+Date:   Fri Dec 30 15:45:36 2011 -0500
+
+    	bugs fixed, opt added, details below
+    	modified:   Makefile
+    	modified:   bed2junc.pl		minor fix about the strand
+    	modified:   jigsaw.cpp		option added min_logit_score
+    	modified:   jigsawaln.cpp	a bug fixed for annotation based search
+    	modified:   jigsawaln.h
+    	modified:   splicescore.cpp	updated matrix
+    	modified:   splicescore.h
+
+commit 0b80d698c1165d73eb1a8eda31fc976e18da3a53
+Author: wuj <wuj@cshl.edu>
+Date:   Thu Dec 22 15:10:57 2011 -0500
 
     	modified:   Makefile
-    	modified:   README
-    	new file:   bwa_files/ChangeLog
-    	new file:   bwa_files/NEWS
-    	new file:   bwa_files/bwa.1
-    	new file:   bwa_files/solid2fastq.pl
-    	modified:   common.mk
-    	modified:   cz/makefile
-    	modified:   jigsaw.cpp
-    	modified:   kent/makefile
-    	deleted:    ChangeLog
-    	deleted:    NEWS
-    	deleted:    bwa.1
-    	deleted:    solid2fastq.pl
+    	modified:   jigsawaln.cpp
+    	modified:   jigsawaln.h
+    	new file:   splicescore.cpp
+    	new file:   splicescore.h
+    	added splicescore functions
+    	changed the ranking strategy too
 
-commit be1b0cbfd27a32ff9f042fece58b3a1447ef36f3
+commit 7c76d2b89a8b1cd9c58ee876e4b1c67d7e78c4db
 Author: wuj <wuj@cshl.edu>
-Date:   Thu May 3 17:02:14 2012 -0400
+Date:   Tue Dec 13 12:26:59 2011 -0500
 
-    OLego files for public, version on 2012.05.03
+    	modified:   jigsawaln.cpp
+    	limit max_diff at each junction as 2
+    	in two anchor search, sometimes the upstream part or downstream part is too small, for example 85,5 for 90nt read, deliminate them with opt->min_anchor
+    	modified:   sam2bed.pl
+    	fixed a bug on tag D
 
-commit 97f34f9c85308cd83754c5689b72196360ef9d61
-Author: Chaolin Zhang <zhangc@okito.rockefeller.edu>
-Date:   Mon Feb 27 23:05:50 2012 -0500
+commit 18ed07914e51fea1044365f038fe80a93af95050
+Author: wuj <wuj@cshl.edu>
+Date:   Wed Dec 7 14:51:03 2011 -0500
 
-    olego files for public
+    	new file:   bed2junc.pl
+    	convert from bed to junction, also report evidence numbers in the score column, the output will be in bed format
+    	modified:   jigsawaln.cpp
+    	fixed a bug about the multi output
+    	modified:   sam2bed.pl
+    	fixed a bug about CIGAR flag 'N', now use this script to convert from sam to bed format, instead of BEDTools before, it has a problem on flag 'D'
+    	new file:   xa2multi.pl
+    	Copied from BWA package from sf.net, convert bwa style format to TopHat/MapSplice style, one alignment perl line
+
+commit 788ecd10c002bfe60fbd0603ad17d663d4f66a13
+Author: wuj <wuj@cshl.edu>
+Date:   Mon Dec 5 13:58:52 2011 -0500
+
+    tiny change
+
+commit 805e48cdee84154ac7099061205b3a89d7aa1629
+Author: wuj <wuj@cshl.edu>
+Date:   Mon Dec 5 13:52:54 2011 -0500
+
+    fixed a bug in deleting duplicate alns
+    if the alns can not be ranked by diff, compare intron size, then junction number
+    require max_diff/2 for double-anchor search, instead of max_diff
+
+commit 2719ed5057f38ece081dcf6a55528bc3372dfb72
+Author: wuj <wuj@cshl.edu>
+Date:   Fri Dec 2 17:38:41 2011 -0500
+
+    two details added
+    delete duplicate junctions found by both denovo and database based searches
+    delete duplicate alignment brought by inner exon searches
+
+commit f605945606a0f4677c816b77c96ac9a969c23b53
+Author: wuj <wuj@cshl.edu>
+Date:   Thu Dec 1 20:51:03 2011 -0500
+
+    bug fixed: didn't destroy duplicate alns after concation
+
+commit 8175ebe98c872e4367ed53bbae50a159f38f98aa
+Author: wuj <wuj@cshl.edu>
+Date:   Thu Dec 1 16:19:32 2011 -0500
+
+    some minor edits
+
+commit ed9afb5d02e444d951bf3807a9e5c2e35ef8f4f5
+Author: wuj <wuj@cshl.edu>
+Date:   Wed Nov 30 13:14:52 2011 -0500
+
+    a bug fixed
+
+commit 880910ad6bf9dfd70b2799f3fda9e04ef9081444
+Author: wuj <wuj@cshl.edu>
+Date:   Wed Nov 30 11:29:30 2011 -0500
+
+    	modified:   jigsaw.cpp
+    	modified:   jigsawaln.cpp
+    	modified:   jigsawaln.h
+    added multiple output for single-anchor search
+    added option report_best_only
+    divided both single/double anchor search functions into subfunctions
+
+commit c294cbaedaa62fe2b40f4146430821c95f353003
+Author: wuj <wuj@cshl.edu>
+Date:   Sun Nov 27 23:39:49 2011 -0500
+
+    	modified:   bwase.cpp
+    	modified:   jigsawaln.cpp
+    for multiple alignments output, allow more junctions for each 2-anchor search, concate the junctions and save all possible connections ( alns ) into the memory, seq->n_multi and seq->multi were filled in and output into the sam output, only tested on double-anchor, i save this version then will work on the whole code.
+
+commit 2abaf4bf2f1e3e1baa09c77cb545d6b2b1880d27
+Author: wuj <wuj@cshl.edu>
+Date:   Sun Nov 13 22:51:01 2011 -0500
+
+    	deleted:    jigsawaln.cpp.orig
+
+commit 126a670cbc808674a737569d6f31e71596325db5
+Merge: 1c49ab4 4ed90ec
+Author: wuj <wuj@cshl.edu>
+Date:   Sun Nov 13 22:46:56 2011 -0500
+
+    Merge branch 'master' of ssh://git.code.sf.net/p/ngs-jigsaw/code
+    
+    Conflicts:
+    	jigsawaln.cpp
+
+commit 1c49ab435b5dd8278611d4f4f0df79d306292070
+Author: wuj <wuj@cshl.edu>
+Date:   Sun Nov 13 21:48:01 2011 -0500
+
+    	modified:   jigsawaln.cpp
+
+commit 4ed90ecd6db54a1c1c1c3a25a740a2a5675e7a62
+Author: Chaolin Zhang <zhangchaolin@gmail.com>
+Date:   Sun Nov 13 20:51:53 2011 -0500
+
+    add some comments on jie's changes in jigsaw_locate_junc_two_anchors
+
+commit a03358744e2cb8f9617a5898387edd10ab7442be
+Author: wuj <wuj@cshl.edu>
+Date:   Fri Nov 4 15:16:32 2011 -0400
+
+    restricted the min single anchor (5nt) for search with annotations
+
+commit 7253cf6e479a4cbec6886279f9b178daeea2fb72
+Author: wuj <wuj@cshl.edu>
+Date:   Wed Nov 2 18:11:49 2011 -0400
+
+    tweaked a little bit when a junction database is provided, the junctions provided will be searched first, if there is no 'best' match with them, then further search will be carried with denovo search. These have been implemented for both two anchor and one anchor searches.
+    
+    A switch for de-novo search has also been added into the code.
+    
+    the code has been tested as a remapping step.
+    
+    modified:   jigsaw.cpp
+    modified:   jigsawaln.cpp
+    modified:   jigsawaln.h
+
+commit eb916c59e824d861c6488f75439918f868e562c3
+Author: Chaolin Zhang <zhangchaolin@gmail.com>
+Date:   Fri Oct 21 09:51:32 2011 -0400
+
+    minor fix
+
+commit d060672c4e5b92e5069c0d7f0d68ee11e96b2692
+Author: Chaolin Zhang <zhangchaolin@gmail.com>
+Date:   Fri Oct 21 09:39:23 2011 -0400
+
+    minor change test
+
+commit 5d546d3ca330614e99336bb407ba244ceaec6893
+Author: wuj <wuj@cshl.edu>
+Date:   Thu Oct 20 23:49:05 2011 -0400
+
+    fixed a bug on splice site retrieve, now we can find a lot more small exons inside the reads.
+
+commit 0aeb08afeb3bcea694ff63f841a150bb145888e1
+Author: wuj <wuj@cshl.edu>
+Date:   Tue Oct 18 23:44:21 2011 -0400
+
+    small exon between two anchor (testing)
+    	modified:   jigsawaln.cpp
+
+commit b44c7ce1fcc2cb539eaf4a4e6db6099cbdd55a6d
+Author: wuj <wuj@cshl.edu>
+Date:   Mon Oct 17 23:16:56 2011 -0400
+
+    	modified:   jigsawaln.cpp
+
+commit 6336bab7d076270d2cb51b150de5bd1dab2b5cd3
+Author: wuj <wuj@cshl.edu>
+Date:   Sun Oct 9 11:58:33 2011 -0400
+
+    modified the single anchor search part, still need to check the mismatches in the anchor
+    	modified:   Makefile
+    	modified:   jigsawaln.cpp
+    	modified:   jigsawaln.h
+
+commit df13e90310a46643f7026dfb40804bafaeab5471
+Author: Chaolin Zhang <zhangchaolin@gmail.com>
+Date:   Wed Sep 28 13:24:08 2011 -0400
+
+    very minor change
+
+commit 8ba58b89b702dad0e0bca333d0a3733a0649140a
+Author: Chaolin Zhang <zhangchaolin@gmail.com>
+Date:   Tue Sep 27 17:13:36 2011 -0400
+
+    bug fix in jigsaw_extend_exon_inexact, the number of mismatches are not
+    counted correctly
+
+commit fb5f0f97df6e93ec450691016112e4cd855f6d86
+Author: Chaolin Zhang <zhangchaolin@gmail.com>
+Date:   Mon Sep 26 23:16:24 2011 -0400
+
+    bug fixes on the number of mismatches
+
+commit d070578f1ab6a2718754065b226270f09dc4ce8d
+Author: wuj <wuj@cshl.edu>
+Date:   Thu Sep 22 21:30:58 2011 -0400
+
+            added a switch for single anchor search
+    	a little debugging about mismatch # counting (unfinished)
+    	modified:   jigsaw.cpp
+    	modified:   jigsawaln.cpp
+    	modified:   jigsawaln.h
+
+commit 6e6fc2a304594c53a476c809152c0cd2b072cb0c
+Author: wuj <wuj@cshl.edu>
+Date:   Tue Sep 13 17:51:05 2011 -0400
+
+    	modified:   jigsawaln.cpp
+    fixed bug "negative intron size"
+    comments inline
+
+commit d6c86de8044ea922f5ee95e5b5dfb92ea631386a
+Author: wuj <wuj@cshl.edu>
+Date:   Thu Sep 1 22:50:26 2011 -0400
+
+     Changes to be committed:
+    	modified:   bwase.cpp
+    	change %ulli to %uli for long unsigned warning, 3 locations
+    	modified:   jigsawaln.cpp
+    	added boundry check for segmentation fault error, in jigsaw_locate_junc_one_anchor
+
+commit 7451ac41515f34cbbb70471303ef85ea41929be9
+Author: Chaolin Zhang <zhangchaolin@gmail.com>
+Date:   Tue Aug 30 00:14:37 2011 -0400
+
+    move enumerate splice site to outer loop
+
+commit 6e62633d6f1457c06d3fc69454364b912f85eb1f
+Author: Chaolin Zhang <zhangchaolin@gmail.com>
+Date:   Mon Aug 29 00:29:10 2011 -0400
+
+    a few bug fixes and tweaks to improve sensitivity
+
+commit beb0b5934be113929457f3aa26d3f82252b4efe9
+Author: Chaolin Zhang <zhangchaolin@gmail.com>
+Date:   Sat Aug 27 01:02:03 2011 -0400
+
+    fixed a memory leak in one anchor exon junction search
+
+commit fa850ad1173ce18f542dccf065a6042aa76896a1
+Author: Chaolin Zhang <zhangchaolin@gmail.com>
+Date:   Tue Aug 23 15:38:52 2011 -0400
+
+    minor fix of the parameter min_anchor
+
+commit 92364bec938e12cb6b053cb52f3dfbc9cd6228f2
+Author: Chaolin Zhang <zhangchaolin@gmail.com>
+Date:   Mon Aug 22 11:35:04 2011 -0400
+
+    minor change in comments
+
+commit c74fbb7b43f1f7fed3bf5a5d27d38f9632d69141
+Author: Chaolin Zhang <zhangchaolin@gmail.com>
+Date:   Sun Aug 21 21:06:09 2011 -0400
+
+    Added sam2bed.pl. it may still have some bugs for rare cases
+
+commit 72de7e891e99a24f12872fff1d2bc004cb559ff1
+Author: Chaolin Zhang <zhangchaolin@gmail.com>
+Date:   Sun Aug 21 20:58:50 2011 -0400
+
+    Add readme
+
+commit 899bdad1dc84d938fa8026e456d55048605ec150
+Author: Chaolin Zhang <zhangchaolin@gmail.com>
+Date:   Sun Aug 21 20:45:04 2011 -0400
+
+    add files
+
+commit 87b963663e925f32eb53344c5e27fef292059f5d
+Author: Chaolin Zhang <zhangchaolin@gmail.com>
+Date:   Sun Aug 21 20:42:05 2011 -0400
+
+    add files
