@@ -62,7 +62,7 @@ while (my $line = <$fin>)
 	next if $line=~/^\s*$/;
 	next if $line=~/^\@/;
 
-	print "$i ...\n" if $verbose && $i % 5000 == 0;
+	print "$i ...\n" if $verbose && $i % 50000 == 0;
 	$i++;
 
 	my ($QNAME, $FLAG, $RNAME, $POS, $MAPQ, $CIGAR, $MRNM, $MPOS, $ISIZE, $SEQ, $QUAL, $TAG) = split (/\s+/, $line, 12);

@@ -63,7 +63,7 @@ int main (int argc, char *argv[])
 
 	if (optind + 1 > argc) {
 		fprintf(stderr, "\n");
-		fprintf(stderr, "Usage:   jigsawindex [-a bwtsw|div|is] [-c] <in.fasta>\n");
+		fprintf(stderr, "Usage:   jigsawindex [-a bwtsw|div|is] [-p STR] <in.fasta>\n");
 		fprintf(stderr, "Compiled with OCC_INTERVAL=%d at %s, %s\n\n", OCC_INTERVAL, __TIME__, __DATE__);
 		fprintf(stderr, "Options: -a STR    BWT construction algorithm: bwtsw or is [bwtsw]\n");
 		fprintf(stderr, "         -p STR    prefix of the index [same as fasta name]\n");
