@@ -232,7 +232,8 @@ typedef struct {
 	int max_overhang;
 	int s_mm, s_gapo, s_gape;
 	int mode;
-	int indel_end_skip, max_del_occ, max_entries;
+	int indel_end_skip, max_del_occ, max_entries, n_batch;
+	int max_report_multi;
 	float fnr;
 	uint32_t max_diff, max_gapo, max_gape;
 //	int max_seed_diff, seed_len;

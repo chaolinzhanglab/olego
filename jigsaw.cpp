@@ -14,7 +14,7 @@
 #include "utils.h"
 
 #ifndef PACKAGE_VERSION
-#define PACKAGE_VERSION "1.0.5"
+#define PACKAGE_VERSION "1.0.6"
 #endif
 
 
@@ -86,6 +86,7 @@ int main (int argc, char *argv[])
 			/*advanced options*/
 			{"non-single-anchor",	no_argument,		0, 0},
 			{"strand-mode",         required_argument,      0, 0},
+			{"max-multi",           required_argument,      0, 0},
 			{"min-logistic-prob",         required_argument,      0, 0},
 			{"max-overhang",    required_argument,  0, 0},
 			{"max-gapo", 		required_argument, 	0, 0},
@@ -96,6 +97,7 @@ int main (int argc, char *argv[])
 			{"penalty-gapo",	required_argument, 	0, 0},
 			{"penalty-gape",	required_argument, 	0, 0},
 			{"log-gap",			no_argument, 		0, 'L'},
+			{"num-reads-batch",         required_argument,      0, 0},
 			{"max-entries", 	required_argument, 	0, 0},
 			{"repeat",			required_argument, 	0, 0},
 			{"none-stop",		no_argument, 		0, 0},
@@ -174,6 +176,13 @@ int main (int argc, char *argv[])
 			else if (strcmp (long_options[option_index].name, "log-gap" ) == 0) {
 				opt->mode |= BWA_MODE_LOGGAP;
 			}
+			else if (strcmp (long_options[option_index].name, "num-reads-batch" ) == 0) {
+			        opt->n_batch = atoi(optarg);
+			}
+			else if (strcmp (long_options[option_index].name, "max-multi" ) == 0) {
+			                                    opt->max_report_multi = atoi(optarg);
+			}
+									    							    
 			else if (strcmp (long_options[option_index].name, "max-entries" ) == 0) {
 				opt->max_entries = atoi(optarg);
 			}
@@ -247,6 +256,7 @@ int main (int argc, char *argv[])
 		fprintf(stderr, "\n[advanced options]\n");
 		fprintf(stderr, " --non-single-anchor          Disable single-anchor de novo junction search \n");
 		fprintf(stderr, " --strand-mode         INT    Strand searching mode, 1:forward, 2: reverse, 3 both. [%d]\n", opt->strand_mode);
+		fprintf(stderr, " --max-multi           INT    Max # of multi alignments reported [%d]\n", opt->max_report_multi);
 		fprintf(stderr, " --min-logistic-prob   FLOAT  Min logistic probability required for an alignment, in the range of [0,1) [%.2f]\n", opt->min_logistic_prob);
 		fprintf(stderr, " --max-overhang        INT    Max # of overhanging nucleotide allowed near junctions [%d]\n", opt->max_overhang);
 		fprintf(stderr, " --max-gapo            INT    Max number or fraction of gap opens [%d]\n", opt->max_gapo);
@@ -257,7 +267,8 @@ int main (int argc, char *argv[])
 		fprintf(stderr, " --penalty-gapo        INT    Gap open penalty [%d]\n", opt->s_gapo);
 		fprintf(stderr, " --penalty-gape        INT    Gap extension penalty [%d]\n", opt->s_gape);
 		fprintf(stderr, " --log-gap                    Log-scaled gap penalty for long deletions\n");
-		fprintf(stderr, " --max-entries         INT    Max entries in the queue [%d]\n", opt->max_entries);
+		fprintf(stderr, " --num-reads-batch     INT    Number of reads per batch [%d]\n", opt->n_batch);
+//		fprintf(stderr, " --max-entries         INT    Max entries in the queue [%d]\n", opt->max_entries);
 //		fprintf(stderr, " --repeat              INT    stop searching when there are >INT equally best hits [%d]\n", opt->max_top2);
 		fprintf(stderr, " --none-stop                  Non-iterative mode: search for all n-difference hits (slooow)\n");
 

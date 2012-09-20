@@ -56,6 +56,8 @@ gap_opt_t *gap_init_opt()
 	o->max_diff = 4; o->max_gapo = 1; o->max_gape = 6;
 	o->report_best_only = 0;
 	o->indel_end_skip = 5; o->max_del_occ = 10; o->max_entries = 2000000;
+	o->n_batch = 0x40000;
+	o->max_report_multi = 1000;
 	o->mode = BWA_MODE_GAPE | BWA_MODE_COMPREAD;
 	//o->seed_len = 32; o->max_seed_diff = 2;
 	o->fnr = 0.04;
@@ -3049,13 +3051,18 @@ void jigsaw_concat_junctions (list <jigsaw_junction_t*> *junctions, int len,
 			    //push this copy into the end of list<aln>
 			    aln->push_back(curr_aln_copy);
 			    no_need_to_update_aln_list = 0;
-			    destroy_flag [i] = 1;// this aln will be destroyed later
+			    if ( last->dexon->end_q != len-1 ) destroy_flag [i] = 1;// this aln will be destroyed later
+				//if the last exon reached the boundary, keep it as a candidate aln
 			    extended = 1;
 			    
 			}
 		}
 
-		if(!extended){
+		if( extended ==0 || curr_p->uexon->start_q == 0 ){
+		    // it can not be extended, 
+		    // or the extension step reached the boundary, this is to fix the bug discovered by Rahul, shown below, when there can be two solutions, the previous concate function only reported the first solution, since junction 2, which although could form a single aln, is connected into the longer aln. 
+		    // =====    1       ====     2       ======
+		    //            ==========     2       ======
 		    //create a new aln
 		    curr_aln = (jigsaw_spliced_aln_t *) calloc (1, sizeof (jigsaw_spliced_aln_t));
 		    curr_aln->junctions = new list<jigsaw_junction_t*>;
@@ -3113,6 +3120,9 @@ void jigsaw_concat_junctions (list <jigsaw_junction_t*> *junctions, int len,
 				break;
 			    }
 			}
+		    }
+		    else {
+			is_identical = 0;
 		    }
 
 		    if(is_identical){
@@ -3653,7 +3663,7 @@ void jigsaw_aln_one_spliced (bwt_t *const bwt[2], bwa_seq_t *seq, const int *g_l
 		}
 
 		if( i > 1 && 1){ //i = c1 + c2
-		    seq->n_multi = i - 1;
+		    seq->n_multi = i < opt->max_report_multi ? (i - 1) : (opt->max_report_multi -1) ;
 		    seq->multi = (bwt_multi1_t*) calloc (seq->n_multi, sizeof(bwt_multi1_t) );
 		    //the multi mappers will be recorded here
 		    aln_iter = aln.begin();
@@ -3982,7 +3992,7 @@ void jigsaw_aln_core(const char *prefix, /*prefix of the genome index*/
 	//int n_batch = 0x4000;
 	//int n_batch = 0x40000;
 
-	while ((seqs = bwa_read_seq(ks, 0x40000, &n_seqs, opt->mode & BWA_MODE_COMPREAD, opt->trim_qual)) != 0) {
+	while ((seqs = bwa_read_seq(ks, opt->n_batch, &n_seqs, opt->mode & BWA_MODE_COMPREAD, opt->trim_qual)) != 0) {
 		tot_seqs += n_seqs;
 		t = clock();
 

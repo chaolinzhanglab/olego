@@ -14,11 +14,13 @@ my $maxdist = 5000000; #cross 11 exons
 my $samestrand = 0;
 my $oppostrand = 1;
 my $nostrand   = 0;
+my $nocheckinput = 0;
 
 GetOptions (
     "d:i"=>\$maxdist,
-    "ss"=>\$samestrand,
-    "ns"=>\$nostrand,
+    "ss|same-strand"=>\$samestrand,
+    "ns|no-strand"=>\$nostrand,
+    "nci|no-check-input"=>\$nocheckinput,
     "v|verbose"=>\$verbose
 );
 
@@ -33,10 +35,11 @@ if ( @ARGV != 3)
     print "Merge sam format output from PE reads\n";
     print "Usage: $prog [options] <end1.sam> <end2.sam> <out.sam>\n\n";
     print "	Please use --ss or --ns to specify the strategy of using strand information to filter read pairs.\n\n";
-    print "	-d	    max distance between the two ends on genome. [$maxdist]\n";
-    print "	--ss	    the two ends come from the same strand, instead of requring opposite strands by default \n";
-    print "	--ns	    do not use strand information. \n";
-    print "	-v	    verbose\n";
+    print "	-d			max distance between the two ends on genome. [$maxdist]\n";
+    print "	--ss, --same-strand	the two ends come from the same strand, instead of requring opposite strands by default \n";
+    print "	--ns, --no-strand	do not use strand information. \n";
+    print "	--nci, --no-check-input	do not check the input file . \n"; 
+    print "	-v			verbose\n";
     exit 1;
 }
 
@@ -49,11 +52,14 @@ open ($fin2, "<$inSAMFile2") || Carp::croak "cannot open file $inSAMFile2 to rea
 
 open ($fout, ">$outFile") || Carp::croak "cannot open file $outFile to write\n";
 
+my $linenum = 0;
 
 while (my $line1 = <$fin1>)
 {
     chomp $line1;
     my $line2 = <$fin2>;
+    $linenum ++;
+    print "$linenum reads done ...\n" if $verbose && $linenum % 10000 == 0;
     chomp $line2;
     if ($line1=~/^\@/)
     {
@@ -65,6 +71,7 @@ while (my $line1 = <$fin1>)
 
     my ($QNAME2, $FLAG2, $RNAME2, $POS2, $MAPQ2, $CIGAR2, $MRNM2, $MPOS2, $ISIZE2, $SEQ2, $QUAL2, $TAG2) = split (/\s+/, $line2, 12);
     # put the infor into the arrays 
+    die "In input $linenum, read names not matched" if (( !$nocheckinput) and ( substr($QNAME1, 0, length($QNAME1)-2) ne substr($QNAME2, 0, length($QNAME2)-2) ) );
     my (@chr1, @chr2);
     my (@pos1, @pos2);
     my (@size1, @size2);
@@ -174,7 +181,7 @@ while (my $line1 = <$fin1>)
     }
     else
     {
-	die "No XS tag!\n"; 
+	die "Error: input 1 $linenum: No XS tag!\n"; 
     }
 
    if ( $TAG2=~/XS\:\S*\:([\+\-\.])/)
@@ -183,7 +190,7 @@ while (my $line1 = <$fin1>)
     }
     else
     {
-	die "No XS tag!\n"; 
+	die "Error: input 2 $linenum: No XS tag!\n"; 
     }
 
       
@@ -208,7 +215,7 @@ while (my $line1 = <$fin1>)
 	    }
 	    else
 	    {
-		die "Wrong XA format.\n";
+		die "Error: input 1 $linenum: Wrong XA format.\n";
 	    }
 	}
     }
@@ -230,7 +237,7 @@ while (my $line1 = <$fin1>)
 	      }
 	      else
 	      {
-		  die "Wrong XA format.\n";
+		  die "Error: input 2 $linenum: Wrong XA format.\n";
 
 		}
 	  }
@@ -393,6 +400,8 @@ while (my $line1 = <$fin1>)
 	
     }
 }
+
+print "Done! Totally $linenum lines processed.\n" if $verbose;
 
 close($fin1);
 close($fin2);
