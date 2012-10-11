@@ -74,7 +74,9 @@ void bwa_aln2seq_core(int n_aln, const bwt_aln1_t *aln, bwa_seq_t *s, int set_ma
 					s->multi[z].gap_t = q->n_gapo_t + q->n_gape_t;
 					s->multi[z].gap_q = q->n_gapo_q + q->n_gape_q;
 					s->multi[z].mm = q->n_mm;
+					s->multi[z].sense_strand = 2;
 					s->multi[z++].strand = q->a;
+					
 				}
 				rest -= q->l - q->k + 1;
 			} else { // Random sampling (http://code.activestate.com/recipes/272884/). In fact, we never come here. 
@@ -86,6 +88,7 @@ void bwa_aln2seq_core(int n_aln, const bwt_aln1_t *aln, bwa_seq_t *s, int set_ma
 					s->multi[z].gap_t = q->n_gapo_t + q->n_gape_t;
 					s->multi[z].gap_q = q->n_gapo_q + q->n_gape_q;
 					s->multi[z].mm = q->n_mm;
+					s->multi[z].sense_strand = 2;
 					s->multi[z++].strand = q->a;
 				}
 				rest = 0;
