@@ -338,7 +338,7 @@ while (my $line1 = <$fin1>)
 		{
 		    $outputline1 = $outputline1."\tXT:A:U";
 		}
-		if ( $strand2[$i] ne $strand2[0])
+		if ( $strand2[$j] ne $strand2[0])
 		{
 			$SEQ2 = reverse $SEQ2;
                         $SEQ2 =~ tr/ACGTacgt/TGCAtgca/;
