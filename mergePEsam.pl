@@ -321,7 +321,12 @@ while (my $line1 = <$fin1>)
 		    $FLAG2 = $FLAG2 | 0x0010;
 		    $FLAG1 = $FLAG1 | 0x0020;
 		}
-		
+		if ( $strand1[$i] ne $strand1[0])
+		{
+			$SEQ1 = reverse $SEQ1;
+			$SEQ1 =~ tr/ACGTacgt/TGCAtgca/;
+			$QUAL1 = reverse $QUAL1;
+		}
 		$outputline1 = join("\t", $QNAME1, $FLAG1, $chr1[$i], $pos1[$i], $MAPQ1, $cigar1[$i], $MRNM1, $MPOS1, $ISIZE1, $SEQ1, $QUAL1, "NM:i:".$nm1[$i]);
 		$outputline1 = $outputline1."\tXS:A:".$sensestrand1[$i];
 		if(scalar (keys %distanceij) >1)
@@ -332,6 +337,12 @@ while (my $line1 = <$fin1>)
 		else
 		{
 		    $outputline1 = $outputline1."\tXT:A:U";
+		}
+		if ( $strand2[$i] ne $strand2[0])
+		{
+			$SEQ2 = reverse $SEQ2;
+                        $SEQ2 =~ tr/ACGTacgt/TGCAtgca/;
+                        $QUAL2 = reverse $QUAL2;
 		}
 		$outputline2 = join("\t", $QNAME2, $FLAG2, $chr2[$j], $pos2[$j], $MAPQ2, $cigar2[$j], $MRNM2, $MPOS2, $ISIZE2, $SEQ2, $QUAL2, "NM:i:".$nm2[$j]);
 		$outputline2 = $outputline2."\tXS:A:".$sensestrand2[$j];
