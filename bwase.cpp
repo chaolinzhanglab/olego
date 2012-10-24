@@ -687,7 +687,7 @@ void bwa_print_sam1(const bntseq_t *bns, bwa_seq_t *p, const bwa_seq_t *mate, in
 						for (k = 0; k < q->n_cigar; ++k)
 							printf("%d%c", __cigar_len(q->cigar[k]), "MIDSN"[__cigar_op(q->cigar[k])]);
 					} else printf("%dM", p->len);
-					printf(",%d", q->gap_t + q->gap_q + q->mm);
+					printf(",%d", q->nm); //q->gap_t + q->gap_q + q->mm);
 					if (q->sense_strand != 2) printf(",%c;", q->sense_strand? '-' : '+' );
 					else printf(",.;");
 				}

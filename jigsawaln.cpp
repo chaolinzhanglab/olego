@@ -1192,7 +1192,17 @@ int jigsaw_locate_junc_one_anchor_with_anno_downstream(jigsaw_exon_t *exon, bwa_
     
     ubyte_t *gap_seq = query_seq + gap_start_q;
     ubyte_t *ref_seq = (ubyte_t *) malloc(gap_len * sizeof(ubyte_t));
-		  
+    
+    uint32_t *adjust_diff =new uint32_t[ n_backsearch +1 ];
+    int diff_track = 0;
+    for ( int ki =0; ki< n_backsearch + 1; ki++) {
+	    int64_t kt =  exon->end_t - ki;
+	    int64_t kq = exon->end_q - ki;
+	    ubyte_t t = get_pacseq_base (pacseq, kt);
+	    ubyte_t q = query_seq [kq];
+	    if (q != t) diff_track++;
+	    adjust_diff[ki] = diff_track;
+     }
     //sense_strand: 0 is "+", 1 is "-"
     for (uint32_t sense_strand = 0; sense_strand < 2; ++sense_strand) {
 	    
@@ -1224,11 +1234,13 @@ int jigsaw_locate_junc_one_anchor_with_anno_downstream(jigsaw_exon_t *exon, bwa_
 		      int path_len;
 		      aln_global_core(ref_seq, gap_len, gap_seq, gap_len, &ap, path, &path_len);
 		      //calculate the number of mismatches and gaps
-		      uint32_t n_mm, n_gapo_t, n_gapo_q, n_gape_t, n_gape_q;
+		      uint32_t n_mm, n_gapo_t, n_gapo_q, n_gape_t, n_gape_q, an_mm;
 		      jigsaw_cal_diff (path, path_len, ref_seq, gap_len, gap_seq, gap_len,
 		      &n_mm, &n_gapo_t, &n_gapo_q, &n_gape_t, &n_gape_q);
 		      free (path);
-		      int diff = n_mm + n_gapo_t + n_gapo_q + n_gape_t + n_gape_q;
+		      an_mm =0;
+		      if (ue_end_t - exon->end_t <=0)  an_mm =  adjust_diff[ exon->end_t-ue_end_t ];
+		      int diff = n_mm + n_gapo_t + n_gapo_q + n_gape_t + n_gape_q - an_mm;
 		      //better junction found
 		      if(opt->report_best_only){
 			  if (diff <= local_max_diff && diff < best_diff) {
@@ -1259,6 +1271,7 @@ int jigsaw_locate_junc_one_anchor_with_anno_downstream(jigsaw_exon_t *exon, bwa_
 				  junction->dexon = de;
 				  junction->sense_strand = sense_strand;
 				  junction->n_mm = n_mm;
+				  junction->an_mm = an_mm;
 				  junction->n_gapo_t = n_gapo_t;
 				  junction->n_gapo_q = n_gapo_q;
 				  junction->n_gape_t = n_gape_t;
@@ -1299,6 +1312,7 @@ int jigsaw_locate_junc_one_anchor_with_anno_downstream(jigsaw_exon_t *exon, bwa_
 			     junction->dexon = de;
 			     junction->sense_strand = sense_strand;
 			     junction->n_mm = n_mm;
+			     junction->an_mm = an_mm;
 			     junction->n_gapo_t = n_gapo_t;
 			     junction->n_gapo_q = n_gapo_q;
 			     junction->n_gape_t = n_gape_t;
@@ -1328,6 +1342,7 @@ int jigsaw_locate_junc_one_anchor_with_anno_downstream(jigsaw_exon_t *exon, bwa_
       exons->push_back(de);
       num_junc_found_in_anno++;
   }
+  delete[] adjust_diff;
   return num_junc_found_in_anno;
 }
 
@@ -1339,6 +1354,18 @@ int jigsaw_locate_junc_one_anchor_denovo_downstream(jigsaw_exon_t *exon, bwa_seq
     jigsaw_exon_t *de = 0;
     jigsaw_junction_t *junction = 0;
     
+    uint32_t *adjust_diff =new uint32_t[ n_backsearch +1 ];
+    int diff_track = 0;
+    for ( int ki =0; ki< n_backsearch + 1; ki++) {
+	    int64_t kt =  exon->end_t - ki;
+	    int64_t kq = exon->end_q - ki;
+	    ubyte_t t = get_pacseq_base (pacseq, kt);
+	    ubyte_t q = query_seq [kq];
+	    if (q != t) diff_track++;
+	    adjust_diff[ki] = diff_track;
+	    	    
+    }
+
     for (uint32_t sense_strand = 0; sense_strand < 2; ++sense_strand) {
 	    if( (! (opt->strand_mode & STRAND_MODE_REVERSE) ) && ( sense_strand != exon->strand ) ) continue;
 	    if( (! (opt->strand_mode & STRAND_MODE_FORWARD) ) && ( sense_strand == exon->strand ) ) continue;
@@ -1451,6 +1478,8 @@ int jigsaw_locate_junc_one_anchor_denovo_downstream(jigsaw_exon_t *exon, bwa_seq
 					    junction->uexon = exon;
 					    junction->dexon = de;
 					    junction->sense_strand = sense_strand;
+					    junction->an_mm = 0;
+					    if (ue_end_t - exon->end_t <=0) junction->an_mm = adjust_diff[ exon->end_t-ue_end_t ];
 					    junction->n_mm = junction->n_gapo_t = junction->n_gapo_q = 0;
 					    junction->n_gape_t = junction->n_gape_q = 0;
 					    junction->start_q = ue_end_q;
@@ -1480,6 +1509,7 @@ int jigsaw_locate_junc_one_anchor_denovo_downstream(jigsaw_exon_t *exon, bwa_seq
 
 	    }
     }
+    delete[] adjust_diff;
     return num_junc_found_denovo;
 
 }
@@ -1509,7 +1539,19 @@ int jigsaw_locate_junc_one_anchor_with_anno_upstream(jigsaw_exon_t *exon, bwa_se
     
     ubyte_t *gap_seq = query_seq;
     ubyte_t *ref_seq = (ubyte_t *) malloc(gap_len * sizeof(ubyte_t));
-    
+
+    //use an array to store the over counted difference in the boundry of the exon
+    uint32_t *adjust_diff =new uint32_t[ n_backsearch +1 ];
+    int diff_track = 0;
+    for ( int ki =0; ki< n_backsearch + 1; ki++)
+    {
+	int64_t kt =  exon->start_t + ki;
+	int64_t kq = exon->start_q + ki;
+	ubyte_t t = get_pacseq_base (pacseq, kt);
+	ubyte_t q = query_seq [kq];
+	if (q != t) diff_track++;
+	adjust_diff[ki] = diff_track;
+    }
     //sense_strand: 0 is "+", 1 is "-"
     for (uint32_t sense_strand = 0; sense_strand < 2; ++sense_strand) {
 	    if( (! (opt->strand_mode & STRAND_MODE_REVERSE) ) && ( sense_strand != exon->strand ) ) continue;
@@ -1517,6 +1559,7 @@ int jigsaw_locate_junc_one_anchor_with_anno_upstream(jigsaw_exon_t *exon, bwa_se
 		    
 	    int64_t de_start_q = exon->start_q + n_backsearch;
 	    uint32_t type = sense_strand ? SPLICE_DONOR : SPLICE_ACCEPTOR;
+
 	    for (int64_t de_start_t = max_de_start_t; de_start_t >= min_de_start_t ; de_start_t--, de_start_q--) {
 		    if (de_start_q  < opt->known_junc_min_anchor) break;
 		    int64_t intron_end_t = de_start_t - 1;
@@ -1538,11 +1581,13 @@ int jigsaw_locate_junc_one_anchor_with_anno_upstream(jigsaw_exon_t *exon, bwa_se
 			    int path_len;
 			    aln_global_core(ref_seq, gap_len, gap_seq, gap_len, &ap, path, &path_len);
 			    //calculate the number of mismatches and gaps
-			    uint32_t n_mm, n_gapo_t, n_gapo_q, n_gape_t, n_gape_q;
+			    uint32_t n_mm, n_gapo_t, n_gapo_q, n_gape_t, n_gape_q, an_mm;
 			    jigsaw_cal_diff (path, path_len, ref_seq, gap_len, gap_seq, gap_len,
 			    &n_mm, &n_gapo_t, &n_gapo_q, &n_gape_t, &n_gape_q);
 			    free (path);
-			    int diff = n_mm + n_gapo_t + n_gapo_q + n_gape_t + n_gape_q;
+			    an_mm = 0;
+			    if (de_start_t  - exon->start_t >=0) an_mm = adjust_diff[de_start_t - exon->start_t];
+			    int diff = n_mm + n_gapo_t + n_gapo_q + n_gape_t + n_gape_q - an_mm;
 			    //better junction found
 			    if(opt->report_best_only){
 				if (diff <= local_max_diff && diff < best_diff) {
@@ -1568,7 +1613,8 @@ int jigsaw_locate_junc_one_anchor_with_anno_upstream(jigsaw_exon_t *exon, bwa_se
 					junction->dexon = exon;
 					junction->uexon = ue;
 					junction->sense_strand = sense_strand;
-					junction->n_mm =n_mm;
+					junction->n_mm = n_mm;
+					junction->an_mm = an_mm;
 					junction->n_gapo_t = n_gapo_t;
 					junction->n_gapo_q = n_gapo_q;
 					junction->n_gape_t = n_gape_t;
@@ -1605,7 +1651,8 @@ int jigsaw_locate_junc_one_anchor_with_anno_upstream(jigsaw_exon_t *exon, bwa_se
 				    junction->dexon = exon;
 				    junction->uexon = ue;
 				    junction->sense_strand = sense_strand;
-				    junction->n_mm =n_mm;
+				    junction->n_mm = n_mm;
+				    junction->an_mm = an_mm;
 				    junction->n_gapo_t = n_gapo_t;
 				    junction->n_gapo_q = n_gapo_q;
 				    junction->n_gape_t = n_gape_t;
@@ -1636,6 +1683,7 @@ int jigsaw_locate_junc_one_anchor_with_anno_upstream(jigsaw_exon_t *exon, bwa_se
       exons->push_back(ue);
       num_junc_found_in_anno++;
     }
+    delete adjust_diff;
     return(num_junc_found_in_anno);
 		
 
@@ -1647,7 +1695,20 @@ int jigsaw_locate_junc_one_anchor_denovo_upstream(jigsaw_exon_t *exon, bwa_seq_t
     ubyte_t *query_seq = exon->strand ? seq->rseq : seq->seq;
     jigsaw_exon_t *ue = 0;
     jigsaw_junction_t *junction = 0;
-    
+
+    uint32_t *adjust_diff =new uint32_t[ n_backsearch +1 ];
+    int diff_track = 0;
+    for ( int ki =0; ki< n_backsearch + 1; ki++)
+    {
+	    int64_t kt =  exon->start_t + ki;
+	    int64_t kq = exon->start_q + ki;
+	    ubyte_t t = get_pacseq_base (pacseq, kt);
+	    ubyte_t q = query_seq [kq];
+	    if (q != t) diff_track++;
+	    adjust_diff[ki] = diff_track;
+    }
+
+
     for (uint32_t sense_strand = 0; sense_strand < 2; ++sense_strand) {
 	if( (! (opt->strand_mode & STRAND_MODE_REVERSE) ) && ( sense_strand != exon->strand ) ) continue;
 	if( (! (opt->strand_mode & STRAND_MODE_FORWARD) ) && ( sense_strand == exon->strand ) ) continue;
@@ -1746,6 +1807,8 @@ int jigsaw_locate_junc_one_anchor_denovo_upstream(jigsaw_exon_t *exon, bwa_seq_t
 				    junction->uexon = ue;
 				    junction->sense_strand = sense_strand;
 				    junction->n_mm = junction->n_gapo_t = junction->n_gapo_q = 0;
+				    junction->an_mm = 0;
+				    if (de_start_t  - exon->start_t >=0) junction->an_mm = adjust_diff[de_start_t - exon->start_t];
 				    junction->n_gape_t = junction->n_gape_q = 0;
 				    junction->start_q = ue->end_q;
 				    junction->end_q = junction->start_q + 1;
@@ -1771,6 +1834,7 @@ int jigsaw_locate_junc_one_anchor_denovo_upstream(jigsaw_exon_t *exon, bwa_seq_t
 		    
 	}
     }
+    delete[] adjust_diff;
 
     return num_junc_found_denovo;	
 
@@ -2164,9 +2228,11 @@ jigsaw_junction_t* _jigsaw_locate_junc_one_anchor (jigsaw_exon_t* exon, bwa_seq_
 
 //when a splice site annotation is provided,
 //return the number of junctions found
-int jigsaw_locate_junc_two_anchors_with_anno (jigsaw_exon_t *ue, jigsaw_exon_t *de, int64_t min_ue_end_t, int64_t max_ue_end_t, int n_backsearch, int gap_len, ubyte_t *gap_seq, ubyte_t *ref_seq,  const ubyte_t *pacseq, const AlnParam *ap, const gap_opt_t *opt, list<jigsaw_junction_t*> *junctions)
+int jigsaw_locate_junc_two_anchors_with_anno (jigsaw_exon_t *ue, jigsaw_exon_t *de, int64_t min_ue_end_t, int64_t max_ue_end_t, int n_backsearch, int gap_len, ubyte_t *seq, ubyte_t *ref_seq,  const ubyte_t *pacseq, const AlnParam *ap, const gap_opt_t *opt, list<jigsaw_junction_t*> *junctions)
 
 {
+	ubyte_t *gap_seq = seq + ue->end_q - n_backsearch + 1;
+	ubyte_t *query_seq = seq;
 	int local_max_diff = (int) opt->max_diff;
 	if(local_max_diff >2 ) local_max_diff = 2;
         //int best_diff = opt->max_diff+1;
@@ -2175,6 +2241,27 @@ int jigsaw_locate_junc_two_anchors_with_anno (jigsaw_exon_t *ue, jigsaw_exon_t *
 	int64_t k;
 	jigsaw_junction_t* p = 0;
 	int num_junc_found_in_anno = 0;
+
+	uint32_t *ue_adjust_diff =new uint32_t[ n_backsearch +1 ];
+	int diff_track = 0;
+	for ( int ki =0; ki< n_backsearch + 1; ki++) {
+		int64_t kt = ue->end_t -ki;
+		int64_t kq = ue->end_q - ki;
+		ubyte_t t = get_pacseq_base (pacseq, kt);
+		ubyte_t q = query_seq [kq];
+		if (q != t) diff_track++;
+		ue_adjust_diff[ki] = diff_track;
+	}
+	uint32_t *de_adjust_diff = new uint32_t [  n_backsearch +1 ];
+	diff_track = 0;
+	for ( int ki =0; ki< n_backsearch + 1; ki++) {
+		int64_t kt = de->start_t + ki;
+		int64_t kq = de->start_q + ki;
+		ubyte_t t = get_pacseq_base (pacseq, kt);
+		ubyte_t q = query_seq [kq];
+		if (q != t) diff_track++;
+		de_adjust_diff[ki] = diff_track;
+	}
 
 	for (int64_t ue_end_t = min_ue_end_t; ue_end_t <= max_ue_end_t; ++ue_end_t) {
 	       int64_t de_start_t = (de->start_t + n_backsearch) - (gap_len - (ue_end_t - min_ue_end_t));
@@ -2210,7 +2297,13 @@ int jigsaw_locate_junc_two_anchors_with_anno (jigsaw_exon_t *ue, jigsaw_exon_t *
 			  jigsaw_cal_diff (path, path_len, ref_seq, gap_len, gap_seq, gap_len,
 			   &n_mm, &n_gapo_t, &n_gapo_q, &n_gape_t, &n_gape_q);
 			  free (path);
-			  int diff = n_mm + n_gapo_t + n_gapo_q + n_gape_t + n_gape_q;
+			  uint32_t an_mm = 0;
+			  //if (ue_end_t - ue->end_t <=0)  an_mm +=  ue_adjust_diff[ ue->end_t-ue_end_t ];
+			  //if (de_start_t  - de->start_t >=0)   an_mm += de_adjust_diff[de_start_t - de->start_t];
+			  an_mm += ue_adjust_diff[ n_backsearch -1 ];
+			  an_mm += de_adjust_diff[ n_backsearch -1 ];
+
+			  int diff = n_mm + n_gapo_t + n_gapo_q + n_gape_t + n_gape_q - an_mm;
 
 			  if(opt->report_best_only){  
 			      //better junction found
@@ -2223,6 +2316,7 @@ int jigsaw_locate_junc_two_anchors_with_anno (jigsaw_exon_t *ue, jigsaw_exon_t *
 					p->end_q = p->start_q + 1;
 
 					p->n_mm = n_mm;
+					p->an_mm = an_mm;
 					p->n_gapo_t = n_gapo_t; p->n_gape_t = n_gape_t;
 					p->n_gapo_q = n_gapo_q; p->n_gape_q = n_gape_q;
 					
@@ -2246,6 +2340,7 @@ int jigsaw_locate_junc_two_anchors_with_anno (jigsaw_exon_t *ue, jigsaw_exon_t *
 				p->start_q = ue->end_q - n_backsearch + ue_end_t - min_ue_end_t;
 				p->end_q = p->start_q + 1;
 				p->n_mm = n_mm;
+				p->an_mm = an_mm;
 				p->n_gapo_t = n_gapo_t; p->n_gape_t = n_gape_t;
 				p->n_gapo_q = n_gapo_q; p->n_gape_q = n_gape_q;
 				
@@ -2269,13 +2364,17 @@ int jigsaw_locate_junc_two_anchors_with_anno (jigsaw_exon_t *ue, jigsaw_exon_t *
 		num_junc_found_in_anno++;
 		
 	    }
+	delete[] ue_adjust_diff;
+	delete[] de_adjust_diff;
 	return num_junc_found_in_anno;    
 }
 
 //this function will do denovo search of SINGLE exon between two anchors
 //will return the number of junctions found denovo
-int jigsaw_locate_junc_two_anchors_denovo (jigsaw_exon_t *ue, jigsaw_exon_t *de, int64_t min_ue_end_t, int64_t max_ue_end_t, int n_backsearch, uint32_t seq_len, int gap_len, ubyte_t *gap_seq, ubyte_t *ref_seq,  const ubyte_t *pacseq,const AlnParam *ap, const gap_opt_t *opt, list<jigsaw_junction_t*> *junctions)
+int jigsaw_locate_junc_two_anchors_denovo (jigsaw_exon_t *ue, jigsaw_exon_t *de, int64_t min_ue_end_t, int64_t max_ue_end_t, int n_backsearch, uint32_t seq_len, int gap_len, ubyte_t *seq, ubyte_t *ref_seq,  const ubyte_t *pacseq,const AlnParam *ap, const gap_opt_t *opt, list<jigsaw_junction_t*> *junctions)
 {
+	ubyte_t *gap_seq = seq + ue->end_q - n_backsearch + 1;
+	ubyte_t *query_seq = seq;
         //int local_max_diff = int (opt->max_diff/2 +0.5);
 	int local_max_diff = int (opt->max_diff);
 	if( local_max_diff > 2 ) local_max_diff = 2;
@@ -2286,6 +2385,27 @@ int jigsaw_locate_junc_two_anchors_denovo (jigsaw_exon_t *ue, jigsaw_exon_t *de,
 	int64_t istart_t, iend_t,k ;
 	int i;
 	jigsaw_junction_t* p = 0;
+        uint32_t *ue_adjust_diff =new uint32_t[ n_backsearch +1 ];
+        int diff_track = 0;
+        for ( int ki =0; ki< n_backsearch + 1; ki++) {
+                int64_t kt = ue->end_t -ki;
+                int64_t kq = ue->end_q - ki;
+                ubyte_t t = get_pacseq_base (pacseq, kt);
+                ubyte_t q = query_seq [kq];
+                if (q != t) diff_track++;
+                ue_adjust_diff[ki] = diff_track;
+        }
+        uint32_t *de_adjust_diff = new uint32_t [  n_backsearch +1 ];
+        diff_track = 0;
+        for ( int ki =0; ki< n_backsearch + 1; ki++) {
+                int64_t kt = de->start_t + ki;
+                int64_t kq = de->start_q + ki;
+                ubyte_t t = get_pacseq_base (pacseq, kt);
+                ubyte_t q = query_seq [kq];
+                if (q != t) diff_track++;
+                de_adjust_diff[ki] = diff_track;
+        }
+
 	
         for (int64_t ue_end_t = min_ue_end_t; ue_end_t <= max_ue_end_t; ++ue_end_t) {
 		int64_t de_start_t = (de->start_t + n_backsearch) - (gap_len - (ue_end_t - min_ue_end_t));
@@ -2325,7 +2445,15 @@ int jigsaw_locate_junc_two_anchors_denovo (jigsaw_exon_t *ue, jigsaw_exon_t *de,
 		jigsaw_cal_diff (path, path_len, ref_seq, gap_len, gap_seq, gap_len,
 			&n_mm, &n_gapo_t, &n_gapo_q, &n_gape_t, &n_gape_q);
 		free (path);
-		int diff = n_mm + n_gapo_t + n_gapo_q + n_gape_t + n_gape_q;
+		uint32_t an_mm = 0;
+		//if (ue_end_t - ue->end_t <=0)  an_mm +=  ue_adjust_diff[ ue->end_t-ue_end_t ];
+		//if (de_start_t  - de->start_t >=0)   an_mm += de_adjust_diff[de_start_t - de->start_t];
+
+		//due to the local band alignment here, the an_mm is computed differently.
+		an_mm += ue_adjust_diff[ n_backsearch -1 ]; // note the -1
+		 an_mm += de_adjust_diff[ n_backsearch -1];
+
+		int diff = n_mm + n_gapo_t + n_gapo_q + n_gape_t + n_gape_q - an_mm;
 
 		//better junction found
 		if(opt->report_best_only){
@@ -2339,6 +2467,7 @@ int jigsaw_locate_junc_two_anchors_denovo (jigsaw_exon_t *ue, jigsaw_exon_t *de,
 			    p->end_q = p->start_q + 1;
 
 			    p->n_mm = n_mm;
+			    p->an_mm = an_mm;
 			    p->n_gapo_t = n_gapo_t; p->n_gape_t = n_gape_t;
 			    p->n_gapo_q = n_gapo_q; p->n_gape_q = n_gape_q;
 			    p->logistic_prob = get_splice_score(pacseq, ue_end_t, de_start_t);
@@ -2356,6 +2485,7 @@ int jigsaw_locate_junc_two_anchors_denovo (jigsaw_exon_t *ue, jigsaw_exon_t *de,
 			p->start_q = ue->end_q - n_backsearch + ue_end_t - min_ue_end_t;
 			p->end_q = p->start_q + 1;
 			p->n_mm = n_mm;
+			p->an_mm = an_mm;
 			p->n_gapo_t = n_gapo_t; p->n_gape_t = n_gape_t;
 			p->n_gapo_q = n_gapo_q; p->n_gape_q = n_gape_q;
 			ue->is_last = 0; de->is_first = 0;
@@ -2372,12 +2502,15 @@ int jigsaw_locate_junc_two_anchors_denovo (jigsaw_exon_t *ue, jigsaw_exon_t *de,
 	    junctions->push_back(p);
 	    num_junc_found_denovo++;
 	}
+	delete[] ue_adjust_diff;
+	delete[] de_adjust_diff;
 	return num_junc_found_denovo;
 } 
 
 
 int jigsaw_locate_junc_two_anchors_inner_exon_with_anno (jigsaw_exon_t *ue, jigsaw_exon_t *de, int64_t min_ue_end_t, int64_t max_ue_end_t, int n_backsearch, ubyte_t *seq, const ubyte_t *pacseq,const ubyte_t *ntpac, int64_t l_pac, bwt_t *const bwt[2], const int *g_log_n, const gap_opt_t *opt, list<jigsaw_junction_t*> *junctions, list<jigsaw_exon_t*> *exons)
 {
+    ubyte_t *query_seq = seq; 
     int64_t ue_end_q, de_start_q, ue_end_t, de_start_t, me_start_t, me_end_t;
     int num_me_found_in_anno = 0;
     int min_exon_size = opt->min_exon_size;
@@ -2386,10 +2519,32 @@ int jigsaw_locate_junc_two_anchors_inner_exon_with_anno (jigsaw_exon_t *ue, jigs
     int local_max_diff = (int) opt->max_diff;
     if(local_max_diff >2 ) local_max_diff = 2;
     ap.band_width = local_max_diff;
+
+	uint32_t *ue_adjust_diff =new uint32_t[ n_backsearch +1 ];
+	int diff_track = 0;
+	for ( int ki =0; ki< n_backsearch + 1; ki++) {
+		int64_t kt = ue->end_t -ki;
+		int64_t kq = ue->end_q - ki;
+		ubyte_t t = get_pacseq_base (pacseq, kt);
+		ubyte_t q = query_seq [kq];
+		if (q != t) diff_track++;
+		ue_adjust_diff[ki] = diff_track;
+	}
+	uint32_t *de_adjust_diff = new uint32_t [  n_backsearch +1 ];
+	diff_track = 0;
+	for ( int ki =0; ki< n_backsearch + 1; ki++) {
+		int64_t kt = de->start_t + ki;
+		int64_t kq = de->start_q + ki;
+		ubyte_t t = get_pacseq_base (pacseq, kt);
+		ubyte_t q = query_seq [kq];
+		if (q != t) diff_track++;
+		de_adjust_diff[ki] = diff_track;
+	}
+
     //TODO: need to check some place for +1 or -1
     list< pair<int64_t, int64_t> > us_sites;
     list< pair<int64_t, int64_t> > ds_sites;
-    
+	
     for (ue_end_t = min_ue_end_t; ue_end_t <= ue->end_t; ue_end_t++ ){
 	for (uint32_t sense_strand = 0; sense_strand < 2; ++sense_strand) {
 	    
@@ -2474,7 +2629,11 @@ int jigsaw_locate_junc_two_anchors_inner_exon_with_anno (jigsaw_exon_t *ue, jigs
 		    &n_mm, &n_gapo_t, &n_gapo_q, &n_gape_t, &n_gape_q);
 		    free (path);
 		    free (ref_seq);
-		    int diff = n_mm + n_gapo_t + n_gapo_q + n_gape_t + n_gape_q;
+		    uint32_t u_an_mm = 0; 
+		    uint32_t d_an_mm = 0;
+		    if (ue_end_t - ue->end_t <=0) u_an_mm =  ue_adjust_diff[ ue->end_t-ue_end_t ];
+		    if (de_start_t  - de->start_t >=0) d_an_mm = de_adjust_diff[de_start_t - de->start_t];
+		    int diff = n_mm + n_gapo_t + n_gapo_q + n_gape_t + n_gape_q - u_an_mm - d_an_mm;
 		    if (diff <= local_max_diff) {
 			ue->is_last = 0;
 			//create a middle exon
@@ -2502,6 +2661,7 @@ int jigsaw_locate_junc_two_anchors_inner_exon_with_anno (jigsaw_exon_t *ue, jigs
 			us_junction->dexon = me;
 			us_junction->sense_strand = sense_strand;
 			us_junction->n_mm = us_junction->n_gapo_t = us_junction->n_gapo_q = 0;
+			us_junction->an_mm = u_an_mm;
 			us_junction->n_gape_t = us_junction->n_gape_q = 0;
 			us_junction->start_q = ue_end_q;
 			us_junction->end_q = us_junction->start_q +1;
@@ -2515,6 +2675,7 @@ int jigsaw_locate_junc_two_anchors_inner_exon_with_anno (jigsaw_exon_t *ue, jigs
 			ds_junction->dexon = de;
 			ds_junction->sense_strand = sense_strand;
 			ds_junction->n_mm = ds_junction->n_gapo_t = ds_junction->n_gapo_q = 0;
+			ds_junction->an_mm = d_an_mm;
 			ds_junction->n_gape_t = ds_junction->n_gape_q = 0;
 			ds_junction->start_q = me->end_q;
 			ds_junction->end_q = ds_junction->start_q +1;
@@ -2534,7 +2695,8 @@ int jigsaw_locate_junc_two_anchors_inner_exon_with_anno (jigsaw_exon_t *ue, jigs
 	}
 	
     }
-
+    delete[] ue_adjust_diff;
+    delete[] de_adjust_diff;
     return num_me_found_in_anno;
 }
 
@@ -2543,6 +2705,28 @@ int jigsaw_locate_junc_two_anchors_inner_exon_with_anno (jigsaw_exon_t *ue, jigs
 int jigsaw_locate_junc_two_anchors_inner_exon_denovo(jigsaw_exon_t *ue, jigsaw_exon_t *de, int64_t min_ue_end_t, int64_t max_ue_end_t, int n_backsearch, ubyte_t *seq, const ubyte_t *pacseq,const ubyte_t *ntpac, int64_t l_pac, bwt_t *const bwt[2], const int *g_log_n, const gap_opt_t *opt, list<jigsaw_junction_t*> *junctions, list<jigsaw_exon_t*> *exons)
 {
     int num_me_found_denovo = 0;
+    ubyte_t *query_seq = seq;
+        uint32_t *ue_adjust_diff =new uint32_t[ n_backsearch +1 ];
+        int diff_track = 0;
+        for ( int ki =0; ki< n_backsearch + 1; ki++) {
+                int64_t kt = ue->end_t -ki;
+                int64_t kq = ue->end_q - ki;
+                ubyte_t t = get_pacseq_base (pacseq, kt);
+                ubyte_t q = query_seq [kq];
+                if (q != t) diff_track++;
+                ue_adjust_diff[ki] = diff_track;
+        }
+        uint32_t *de_adjust_diff = new uint32_t [  n_backsearch +1 ];
+        diff_track = 0;
+        for ( int ki =0; ki< n_backsearch + 1; ki++) {
+                int64_t kt = de->start_t + ki;
+                int64_t kq = de->start_q + ki;
+                ubyte_t t = get_pacseq_base (pacseq, kt);
+                ubyte_t q = query_seq [kq];
+                if (q != t) diff_track++;
+                de_adjust_diff[ki] = diff_track;
+        }
+
     int64_t ue_end_q, de_start_q, ue_end_t, de_start_t;
     for (ue_end_t = min_ue_end_t, ue_end_q = ue->end_q - n_backsearch; ue_end_t <= ue->end_t; ue_end_t++, ue_end_q++ )	{
 	for (uint32_t sense_strand = 0; sense_strand < 2; ++sense_strand) {
@@ -2668,6 +2852,8 @@ int jigsaw_locate_junc_two_anchors_inner_exon_denovo(jigsaw_exon_t *ue, jigsaw_e
 					    us_junction->dexon = me;
 					    us_junction->sense_strand = sense_strand;
 					    us_junction->n_mm = us_junction->n_gapo_t = us_junction->n_gapo_q = 0;
+					    us_junction->an_mm = 0;
+					    if (ue_end_t - ue->end_t <=0) us_junction->an_mm = ue_adjust_diff[ ue->end_t-ue_end_t ];
 					    us_junction->n_gape_t = us_junction->n_gape_q = 0;
 					    us_junction->start_q = ue_end_q;
 					    us_junction->end_q = us_junction->start_q +1;
@@ -2683,6 +2869,8 @@ int jigsaw_locate_junc_two_anchors_inner_exon_denovo(jigsaw_exon_t *ue, jigsaw_e
 					    ds_junction->dexon = de;
 					    ds_junction->sense_strand = sense_strand;
 					    ds_junction->n_mm = ds_junction->n_gapo_t = ds_junction->n_gapo_q = 0;
+					    ds_junction->an_mm = 0;
+					    if (de_start_t  - de->start_t >=0) ds_junction->an_mm = de_adjust_diff[de_start_t - de->start_t];
 					    ds_junction->n_gape_t = ds_junction->n_gape_q = 0;
 					    ds_junction->start_q = me->end_q;
 					    ds_junction->end_q = ds_junction->start_q +1;
@@ -2714,6 +2902,8 @@ int jigsaw_locate_junc_two_anchors_inner_exon_denovo(jigsaw_exon_t *ue, jigsaw_e
     }
 	    
     }
+    delete[] ue_adjust_diff;
+    delete[] de_adjust_diff;
     return num_me_found_denovo;
 
 }
@@ -2760,7 +2950,7 @@ void jigsaw_locate_junc_two_anchors (jigsaw_exon_t *ue, jigsaw_exon_t *de,
 	int64_t min_ue_end_t = ue->end_t - n_backsearch;
 	int64_t max_ue_end_t = min_ue_end_t + gap_len - 1;
 
-	ubyte_t *gap_seq = seq + ue->end_q - n_backsearch + 1;
+	//ubyte_t *gap_seq = seq + ue->end_q - n_backsearch + 1;
 	ubyte_t *ref_seq = (ubyte_t *) malloc(gap_len * sizeof(ubyte_t));
 
 	int num_junc_found_denovo = 0;
@@ -2768,7 +2958,7 @@ void jigsaw_locate_junc_two_anchors (jigsaw_exon_t *ue, jigsaw_exon_t *de,
 	
 	if(opt->splice_site_map)// if junction database is provided, check it first
 	{
-	    num_junc_found_in_anno = jigsaw_locate_junc_two_anchors_with_anno(ue, de, min_ue_end_t, max_ue_end_t, n_backsearch, gap_len, gap_seq, ref_seq, pacseq, &ap, opt, junctions);
+	    num_junc_found_in_anno = jigsaw_locate_junc_two_anchors_with_anno(ue, de, min_ue_end_t, max_ue_end_t, n_backsearch, gap_len, seq, ref_seq, pacseq, &ap, opt, junctions);
 	    //if(opt->non_denovo_search) {free(ref_seq); return;}
 	    //stop here if both splice_site_map and non_denovo_search
 
@@ -2776,7 +2966,7 @@ void jigsaw_locate_junc_two_anchors (jigsaw_exon_t *ue, jigsaw_exon_t *de,
 	if((opt->non_denovo_search == 0) && de->start_t - 1 - ue->end_t < opt->max_intron_size) 
 
         {
-	    num_junc_found_denovo = jigsaw_locate_junc_two_anchors_denovo(ue, de, min_ue_end_t, max_ue_end_t, n_backsearch, seq_len, gap_len, gap_seq, ref_seq, pacseq, &ap, opt, junctions);
+	    num_junc_found_denovo = jigsaw_locate_junc_two_anchors_denovo(ue, de, min_ue_end_t, max_ue_end_t, n_backsearch, seq_len, gap_len, seq, ref_seq, pacseq, &ap, opt, junctions);
 	
        }
        free (ref_seq);
@@ -3170,6 +3360,10 @@ void jigsaw_concat_junctions (list <jigsaw_junction_t*> *junctions, int len,
 			curr_aln->n_gape_q += p->dexon->n_gape_q;
 
 			curr_aln->logistic_prob += p->logistic_prob;
+
+			//adjust the mismatch with an_mm in junction
+			//do it at the end of the loop to avoid negative numbers
+			curr_aln->n_mm -= p->an_mm;
 		}
 
 		curr_aln->diff = curr_aln->n_mm + curr_aln->n_gapo_t + curr_aln->n_gape_t
@@ -3668,8 +3862,8 @@ void jigsaw_aln_one_spliced (bwt_t *const bwt[2], bwa_seq_t *seq, const int *g_l
 		    //the multi mappers will be recorded here
 		    aln_iter = aln.begin();
 		    aln_iter++;
-		    //int nm_tmp;
-		    //char *md_tmp;
+		    int nm_tmp;
+		    char *md_tmp;
 		    kstring_t *str_tmp = (kstring_t*)calloc(1, sizeof(kstring_t));
 		    int j=0;
 		    for(; j < seq->n_multi; aln_iter++, j++ ) {
@@ -3688,11 +3882,15 @@ void jigsaw_aln_one_spliced (bwt_t *const bwt[2], bwa_seq_t *seq, const int *g_l
 	                        l_pac, pacseq, ntpac, opt->max_diff, &n_cigar_tmp);
 			}
 			q->n_cigar = n_cigar_tmp;
-			//md_tmp = bwa_cal_md1(q->n_cigar, q->cigar, curr_aln->end_q - curr_aln->start_q+1, q->pos, (q->strand? seq->rseq : seq->seq) + curr_aln->start_q, l_pac, ntpac? ntpac : pacseq, str_tmp, &nm_tmp);
+			md_tmp = bwa_cal_md1(q->n_cigar, q->cigar, curr_aln->end_q - curr_aln->start_q+1, q->pos, (q->strand? seq->rseq : seq->seq) + curr_aln->start_q, l_pac, ntpac? ntpac : pacseq, str_tmp, &nm_tmp);
+
 			q->mm = curr_aln->n_mm;
+			q->nm = nm_tmp;// this might be different to curr_aln->diff, due to the global adjustment in the concat step, the same reason curr_aln->diff might be differnt to q->mm+ q->gap_t+ q->gap_q 
+
 			q->gap_t = curr_aln->n_gapo_t + curr_aln->n_gape_t;
 			q->gap_q = curr_aln->n_gapo_q + curr_aln->n_gape_q;
 
+			//if ( curr_aln->diff != nm_tmp) fprintf (stderr, "%s\t%u\t%u\t%u\t%d\t%d\n",seq->name, q->mm, q->gap_t, q->gap_q, nm_tmp, curr_aln->diff);
 		    }
 		    free(str_tmp->s); free(str_tmp);
 		    
