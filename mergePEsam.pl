@@ -32,14 +32,14 @@ my $prog = $0;
 
 if ( @ARGV != 3)
 {
-    print "Merge sam format output from PE reads\n";
-    print "Usage: $prog [options] <end1.sam> <end2.sam> <out.sam>\n\n";
-    print "	Please use --ss or --ns to specify the strategy of using strand information to filter read pairs.\n\n";
-    print "	-d			max distance between the two ends on genome. [$maxdist]\n";
-    print "	--ss, --same-strand	the two ends come from the same strand, instead of requring opposite strands by default \n";
-    print "	--ns, --no-strand	do not use strand information. \n";
-    print "	--nci, --no-check-input	do not check the input file . \n"; 
-    print "	-v			verbose\n";
+    print STDERR "Merge sam format output from PE reads\n";
+    print STDERR "Usage: $prog [options] <end1.sam> <end2.sam> <out.sam>\n\n";
+    print STDERR "	Please use --ss or --ns to specify the strategy of using strand information to filter read pairs. Also, you can use - to direct the output into STDOUT\n\n";
+    print STDERR "	-d			max distance between the two ends on genome. [$maxdist]\n";
+    print STDERR "	--ss, --same-strand	the two ends come from the same strand, instead of requring opposite strands by default \n";
+    print STDERR "	--ns, --no-strand	do not use strand information. \n";
+    print STDERR "	--nci, --no-check-input	do not check the input file . \n"; 
+    print STDERR "	-v			verbose\n";
     exit 1;
 }
 
@@ -50,7 +50,14 @@ my ($fin1,$fin2, $fout);
 open ($fin1, "<$inSAMFile1") || Carp::croak "cannot open file $inSAMFile1 to read\n";
 open ($fin2, "<$inSAMFile2") || Carp::croak "cannot open file $inSAMFile2 to read\n";
 
-open ($fout, ">$outFile") || Carp::croak "cannot open file $outFile to write\n";
+if($outFile ne "-")
+{
+    open ($fout, ">$outFile") || Carp::croak "cannot open file $outFile to write\n";
+}
+else
+{
+    $fout = *STDOUT;
+}
 
 my $linenum = 0;
 
@@ -59,7 +66,7 @@ while (my $line1 = <$fin1>)
     chomp $line1;
     my $line2 = <$fin2>;
     $linenum ++;
-    print "$linenum reads done ...\n" if $verbose && $linenum % 10000 == 0;
+    print STDERR "$linenum reads done ...\n" if $verbose && $linenum % 10000 == 0;
     chomp $line2;
     if ($line1=~/^\@/)
     {
@@ -412,7 +419,7 @@ while (my $line1 = <$fin1>)
     }
 }
 
-print "Done! Totally $linenum lines processed.\n" if $verbose;
+print STDERR "Done! Totally $linenum lines processed.\n" if $verbose;
 
 close($fin1);
 close($fin2);

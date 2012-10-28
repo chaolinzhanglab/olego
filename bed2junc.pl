@@ -19,9 +19,9 @@ GetOptions (
 
 if (@ARGV != 2)
 {
-    print "bed format to junctions\n";
-    print "Usage: $prog [options] <in.bed> <out> \n";
-    print "You can use - to specify STDIN for input or STDOUT for output\n";
+    print STDERR "bed format to junctions\n";
+    print STDERR "Usage: $prog [options] <in.bed> <out> \n";
+    print STDERR "You can use - to specify STDIN for input or STDOUT for output\n";
     exit(1);
 }
 

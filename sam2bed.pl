@@ -23,14 +23,14 @@ GetOptions (
 
 if (@ARGV != 2 && @ARGV != 3)
 {
-	print "Converts OLego SAM format to BED format, works for paired end data and saves into a single BED file, only reports the major alignments. \n";
-	print "Usage: $prog [options] <in.sam> <out1.bed> [out2.bed]\n\n";
-	print "Please specify both out1.bed and out2.bed if you want the paired-end reads output into two separate BED files. You can also use - to specify STDIN for input or STDOUT for output\n";
-	#print " -p: paired-end data\n";
-	print "-u,--uniq:		print uniquely mapped reads only\n";
-	print "-r,--use-RNA-strand:	force to use the strand of the RNA based on the XS tag \n";
-#	print "-s,--separate-bed:	for paired-end input, output two separate BED outputs \n";
-	print "-v,--verbose:		verbose\n";
+	print STDERR "Converts OLego SAM format to BED format, works for paired end data and saves into a single BED file, only reports the major alignments. \n";
+	print STDERR "Usage: $prog [options] <in.sam> <out1.bed> [out2.bed]\n\n";
+	print STDERR "Please specify both out1.bed and out2.bed if you want the paired-end reads output into two separate BED files. You can also use - to specify STDIN for input or STDOUT for output\n";
+	#print STDERR " -p: paired-end data\n";
+	print STDERR "-u,--uniq:		print uniquely mapped reads only\n";
+	print STDERR "-r,--use-RNA-strand:	force to use the strand of the RNA based on the XS tag \n";
+#	print STDERR "-s,--separate-bed:	for paired-end input, output two separate BED outputs \n";
+	print STDERR "-v,--verbose:		verbose\n";
 	exit (1);
 }
 
@@ -68,6 +68,7 @@ if ($separateBed)
     {
 	$fout2 = *STDOUT;
     }
+    else
     {
 	open ($fout2, ">$outBedFile2") || Carp::croak "cannot open file $outBedFile2 to write\n";
     }
@@ -84,7 +85,7 @@ while (my $line = <$fin>)
 	next if $line=~/^\s*$/;
 	next if $line=~/^\@/;
 
-	print "$i ...\n" if $verbose && $i % 50000 == 0;
+	print STDERR "$i ...\n" if $verbose && $i % 50000 == 0;
 	$i++;
 
 	my ($QNAME, $FLAG, $RNAME, $POS, $MAPQ, $CIGAR, $MRNM, $MPOS, $ISIZE, $SEQ, $QUAL, $TAG) = split (/\s+/, $line, 12);
@@ -225,7 +226,7 @@ while (my $line = <$fin>)
 		}
 	}
 }
-print "Done! Totally $i lines processed! \n" if $verbose;
+print STDERR "Done! Totally $i lines processed! \n" if $verbose;
 
 close ($fin);
 close ($fout);
