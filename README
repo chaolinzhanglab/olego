@@ -2,10 +2,9 @@ OLego -- short or long RNA-seq read mapping to discover exon junction
 
 Jie Wu (wuj@cshl.edu), Chaolin Zhang (czhang@rockefeller.edu)
 
-Updated on Oct. 23rd, 2012
+Updated on Nov 19th, 2012
 
 We are updating the manual frequently, so please check regularly for updates! 
-
 
 What is OLego?
 ======================
@@ -17,7 +16,7 @@ OLego is an open source code project and released under GPLv3. The implementatio
 Versions
 ======================
 
-v1.0.8
+v1.0.8 ( 11-20-2012 )
 ---------------------
 * Improvement in hit clustering.
 * Fixed an overcounting problem in mismatch counting.
