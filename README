@@ -17,8 +17,9 @@ OLego is an open source code project and released under GPLv3. The implementatio
 Versions
 ======================
 
-v1.0.7
+v1.0.8
 ---------------------
+* Improvement in hit clustering.
 * Fixed an overcounting problem in mismatch counting.
 * Fixed bug in merging step. 
 * Fixed bug in XS tag for extra exon body reads.
@@ -445,7 +446,7 @@ Example commands for strand specific RNA-seq data::
     
 Some example commands using pipe to save space::
 
-    samtools view -uS merge.sam |samtools sort - merge.sort
+    samtools view -uSh merge.sam |samtools sort - merge.sort
     # this converts the sam output into sorted bam files to save space, and the bam file should be ready for downstream analysis (e.g. Cufflinks).
     
     samtools view merge.sort.bam | sam2bed.pl -r - - | bed2junc.pl - merge.junc

@@ -14,7 +14,7 @@
 #include "utils.h"
 
 #ifndef PACKAGE_VERSION
-#define PACKAGE_VERSION "1.0.7"
+#define PACKAGE_VERSION "1.0.8"
 #endif
 
 

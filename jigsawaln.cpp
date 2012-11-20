@@ -824,16 +824,27 @@ void jigsaw_group_hits_to_spliced_aln_clusters (list<jigsaw_word_hit_t*> *hits, 
 	int64_t prev_pos_t = 0, curr_pos_t;
 	uint32_t prev_strand = 2;
 	//illegal value so that a new clump will be created at the very beginning
+	int prev_wid_direction = 0, curr_wid_direction = 0; //this is to make sure hits->wid in the cluster are in the same direction, 0 means not determined.
+	int prev_wid = -1, curr_wid;
 
 	list<jigsaw_word_hit_t *>::iterator iter;
 	uint32_t curr_cluster_id = 0;
 	for (iter = hits->begin (); iter != hits->end(); ++iter)
 	{
 		jigsaw_word_hit_t *p = *iter;
-		//int prev_wid = 0;
 		curr_pos_t = p->pos_t;
+		curr_wid = abs(p->wid);
+		if(prev_wid != -1)
+		{
+			int wid_diff = curr_wid - prev_wid;
+			if ( wid_diff != 0) {curr_wid_direction = abs( wid_diff)/ wid_diff;}
+			else {curr_wid_direction = 2;} // 2 means the same direction
+		}
 
-		if (p->strand != prev_strand || curr_pos_t - prev_pos_t > 2 * max_intron_size /*|| abs(p->wid) <= prev_wid */) {
+
+		if (p->strand != prev_strand || curr_pos_t - prev_pos_t > 2 * max_intron_size || 
+			curr_wid_direction ==2 	|| 
+			(prev_wid_direction != 0 && prev_wid_direction != curr_wid_direction ) ) {
 		    //2 times maxintron size because of possible inner exons
 		    //TODO: after increasing this, we missed some alignments, maybe because the uniqueness issue
 
@@ -845,6 +856,11 @@ void jigsaw_group_hits_to_spliced_aln_clusters (list<jigsaw_word_hit_t*> *hits, 
 				clusters->pop_back();
 			}
 */
+			//prev_wid_direction = 0;
+			curr_wid_direction = 0; 
+			//prev_wid = -1;
+			//curr_wid = -1;
+
 			//create a new candidate alignment
 
 			curr_clust = (jigsaw_spliced_aln_cluster_t*) calloc (1, sizeof (jigsaw_spliced_aln_cluster_t));
@@ -862,9 +878,10 @@ void jigsaw_group_hits_to_spliced_aln_clusters (list<jigsaw_word_hit_t*> *hits, 
 		//double the capacity of the array if necessary
 
 		curr_clust->hits->push_back (p);
+		prev_wid_direction = curr_wid_direction;
 
 		prev_pos_t = p->pos_t;
-		//prev_wid = abs(p->wid);
+		prev_wid = curr_wid;
 		prev_strand = p->strand;
 	}
 
