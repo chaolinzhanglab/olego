@@ -2,10 +2,9 @@ OLego -- short or long RNA-seq read mapping to discover exon junction
 
 Jie Wu (wuj@cshl.edu), Chaolin Zhang (czhang@rockefeller.edu)
 
-Updated on Aug. 9th, 2012
+Updated on Nov 19th, 2012
 
 We are updating the manual frequently, so please check regularly for updates! 
-
 
 What is OLego?
 ======================
@@ -16,6 +15,14 @@ OLego is an open source code project and released under GPLv3. The implementatio
 
 Versions
 ======================
+
+v1.0.8 ( 11-20-2012 )
+---------------------
+* Improvement in hit clustering.
+* Fixed an overcounting problem in mismatch counting.
+* Fixed bug in merging step. 
+* Fixed bug in XS tag for extra exon body reads.
+* Allows pipe input/output with "-" for some of the scripts. 
 
 v1.0.6 ( 08-09-2012 )
 ---------------------
@@ -122,7 +129,8 @@ Arguments:
     Argument	Description
     ===========	=============================================================================================	
     <prefix>	The prefix of the genome sequence index, including the path and the base name. 
-    <in.fastx>	Either fasta or fastq file would work as input.
+    <in.fastx>	Either fasta or fastq file would work as input. Note that gzipped file is also accepted. 
+		Addtionally, using "-" will make the program to read input from STDIN. 
     ===========	=============================================================================================
 
 Basic options:
@@ -276,9 +284,10 @@ Arguments:
     ======================  =============================================================================
     Argument		    Description
     ======================  =============================================================================
-    <in.sam>		    The SAM input file from OLego.
+    <in.sam>		    The SAM input file from OLego. "-" can be used to input from STDIN.
     <out1.bed> [out2.bed]   Please specify two BED files if you want Paired-end reads output into
 			    separate BED files, otherwise, all the reads will be output into out1.bed.
+			    "-" can be used to output into STDOUT. 
     ======================  =============================================================================
 
 Options:
@@ -310,9 +319,11 @@ Arguments:
     ==========  ====================================================================
     Argument	Description
     ==========	====================================================================
-    <in.bed>	The input BED file with the mapping results.
+    <in.bed>	The input BED file with the mapping results. "-" can be used to input 
+		from STDIN. 
     <out>	The output BED format file with the junctions. This file can be directly 
-		used as junction annotation file for olego. 
+		used as junction annotation file for olego. "-" can be used to output
+		into STDOUT. 
     ==========	====================================================================
 
 regression_model_gen
@@ -431,3 +442,12 @@ Example commands for strand specific RNA-seq data::
 
     olego -v -t 16 -o r.sam --strand-mode 2 ~/mz-local/database/mm9/genome/olego/mm9.fa r.fa
     # the other end should be on the reverse strand according to the protocol
+    
+Some example commands using pipe to save space::
+
+    samtools view -uSh merge.sam |samtools sort - merge.sort
+    # this converts the sam output into sorted bam files to save space, and the bam file should be ready for downstream analysis (e.g. Cufflinks).
+    
+    samtools view merge.sort.bam | sam2bed.pl -r - - | bed2junc.pl - merge.junc
+    # this will extract all junctions from the bam output without generating sam and bed files.
+

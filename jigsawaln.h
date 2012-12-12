@@ -77,6 +77,9 @@ typedef struct {
 	//record the number of mismatches near exon junctions
 	//since there is no mismatch near hits, these should not be redundant with mismatches
 	//recorded in exons
+	uint32_t an_mm:8;
+	//this is to adjust the mismatches when extending into the exons
+	//adjust number of mismatch 
 
 	uint32_t sense_strand:2;
 	// strand of the splice site, which might be different from the strand of exons
@@ -148,7 +151,7 @@ typedef uint32_t jigsaw_cigar_t;
 
 typedef struct {
 	uint32_t pos;
-	uint32_t n_cigar:15, gap_t:8, gap_q:8, mm:8, strand:1, sense_strand:2;
+	uint32_t n_cigar:15, gap_t:8, gap_q:8, mm:8, strand:1, sense_strand:2, nm:12;
 	jigsaw_cigar_t *cigar;
 } bwt_multi1_t;
 

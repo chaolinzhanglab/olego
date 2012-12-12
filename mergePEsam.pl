@@ -32,14 +32,14 @@ my $prog = $0;
 
 if ( @ARGV != 3)
 {
-    print "Merge sam format output from PE reads\n";
-    print "Usage: $prog [options] <end1.sam> <end2.sam> <out.sam>\n\n";
-    print "	Please use --ss or --ns to specify the strategy of using strand information to filter read pairs.\n\n";
-    print "	-d			max distance between the two ends on genome. [$maxdist]\n";
-    print "	--ss, --same-strand	the two ends come from the same strand, instead of requring opposite strands by default \n";
-    print "	--ns, --no-strand	do not use strand information. \n";
-    print "	--nci, --no-check-input	do not check the input file . \n"; 
-    print "	-v			verbose\n";
+    print STDERR "Merge sam format output from PE reads\n";
+    print STDERR "Usage: $prog [options] <end1.sam> <end2.sam> <out.sam>\n\n";
+    print STDERR "	Please use --ss or --ns to specify the strategy of using strand information to filter read pairs. Also, you can use - to direct the output into STDOUT\n\n";
+    print STDERR "	-d			max distance between the two ends on genome. [$maxdist]\n";
+    print STDERR "	--ss, --same-strand	the two ends come from the same strand, instead of requring opposite strands by default \n";
+    print STDERR "	--ns, --no-strand	do not use strand information. \n";
+    print STDERR "	--nci, --no-check-input	do not check the input file . \n"; 
+    print STDERR "	-v			verbose\n";
     exit 1;
 }
 
@@ -50,7 +50,14 @@ my ($fin1,$fin2, $fout);
 open ($fin1, "<$inSAMFile1") || Carp::croak "cannot open file $inSAMFile1 to read\n";
 open ($fin2, "<$inSAMFile2") || Carp::croak "cannot open file $inSAMFile2 to read\n";
 
-open ($fout, ">$outFile") || Carp::croak "cannot open file $outFile to write\n";
+if($outFile ne "-")
+{
+    open ($fout, ">$outFile") || Carp::croak "cannot open file $outFile to write\n";
+}
+else
+{
+    $fout = *STDOUT;
+}
 
 my $linenum = 0;
 
@@ -59,7 +66,7 @@ while (my $line1 = <$fin1>)
     chomp $line1;
     my $line2 = <$fin2>;
     $linenum ++;
-    print "$linenum reads done ...\n" if $verbose && $linenum % 10000 == 0;
+    print STDERR "$linenum reads done ...\n" if $verbose && $linenum % 10000 == 0;
     chomp $line2;
     if ($line1=~/^\@/)
     {
@@ -321,7 +328,12 @@ while (my $line1 = <$fin1>)
 		    $FLAG2 = $FLAG2 | 0x0010;
 		    $FLAG1 = $FLAG1 | 0x0020;
 		}
-		
+		if ( $strand1[$i] ne $strand1[0])
+		{
+			$SEQ1 = reverse $SEQ1;
+			$SEQ1 =~ tr/ACGTacgt/TGCAtgca/;
+			$QUAL1 = reverse $QUAL1;
+		}
 		$outputline1 = join("\t", $QNAME1, $FLAG1, $chr1[$i], $pos1[$i], $MAPQ1, $cigar1[$i], $MRNM1, $MPOS1, $ISIZE1, $SEQ1, $QUAL1, "NM:i:".$nm1[$i]);
 		$outputline1 = $outputline1."\tXS:A:".$sensestrand1[$i];
 		if(scalar (keys %distanceij) >1)
@@ -332,6 +344,12 @@ while (my $line1 = <$fin1>)
 		else
 		{
 		    $outputline1 = $outputline1."\tXT:A:U";
+		}
+		if ( $strand2[$j] ne $strand2[0])
+		{
+			$SEQ2 = reverse $SEQ2;
+                        $SEQ2 =~ tr/ACGTacgt/TGCAtgca/;
+                        $QUAL2 = reverse $QUAL2;
 		}
 		$outputline2 = join("\t", $QNAME2, $FLAG2, $chr2[$j], $pos2[$j], $MAPQ2, $cigar2[$j], $MRNM2, $MPOS2, $ISIZE2, $SEQ2, $QUAL2, "NM:i:".$nm2[$j]);
 		$outputline2 = $outputline2."\tXS:A:".$sensestrand2[$j];
@@ -401,7 +419,7 @@ while (my $line1 = <$fin1>)
     }
 }
 
-print "Done! Totally $linenum lines processed.\n" if $verbose;
+print STDERR "Done! Totally $linenum lines processed.\n" if $verbose;
 
 close($fin1);
 close($fin2);

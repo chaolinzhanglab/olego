@@ -1,6 +1,6 @@
 CC=			gcc
 CXX=		g++
-#CFLAGS=		-g -Wall #-pg #-O2 -m64 -pg
+#CFLAGS=		-g -Wall -pg #-O2 -m64 -pg
 CFLAGS=		-g -Wall -O2 -m64 #-pg
 CXXFLAGS=	$(CFLAGS)
 DFLAGS=		-DHAVE_PTHREAD #-DOCC_INTERVAL_DEFAULT=0x80 #-D_FILE_OFFSET_BITS=64

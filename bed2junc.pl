@@ -19,8 +19,9 @@ GetOptions (
 
 if (@ARGV != 2)
 {
-    print "bed format to junctions\n";
-    print "usage: $prog [options] <in.bed> <out.bed> \n";
+    print STDERR "bed format to junctions\n";
+    print STDERR "Usage: $prog [options] <in.bed> <out> \n";
+    print STDERR "You can use - to specify STDIN for input or STDOUT for output\n";
     exit(1);
 }
 
@@ -30,7 +31,13 @@ my ($fin, $fout);
 
 my %junchash;
 
-open($fin, $inputfilename) or Carp::croak "cannot open file $inputfilename to read!\n";
+if ( $inputfilename eq "-")
+   {
+        $fin = *STDIN;
+   }
+   {
+    open($fin, $inputfilename) or Carp::croak "cannot open file $inputfilename to read!\n";
+   }
 while(my $line = <$fin>)
 {
     chomp($line);
@@ -55,7 +62,15 @@ while(my $line = <$fin>)
 }
 close($fin);
 
-open($fout, ">$outputfilename") or Carp::croak "cannot open file $outputfilename to write!\n";
+if ( $outputfilename ne "-")
+{
+    open($fout, ">$outputfilename") or Carp::croak "cannot open file $outputfilename to write!\n";
+}
+else
+{
+    $fout = *STDOUT;
+}
+
 foreach my $key (keys %junchash)
 {
     my @a = split(",", $key);
