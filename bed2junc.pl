@@ -20,7 +20,7 @@ GetOptions (
 if (@ARGV != 2)
 {
     print "bed format to junctions\n";
-    print "usage: $prog [options] <in.bed> <out> \n";
+    print "usage: $prog [options] <in.bed> <out.bed> \n";
     exit(1);
 }
 
