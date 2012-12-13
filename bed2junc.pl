@@ -35,6 +35,7 @@ if ( $inputfilename eq "-")
    {
         $fin = *STDIN;
    }
+   else
    {
     open($fin, $inputfilename) or Carp::croak "cannot open file $inputfilename to read!\n";
    }

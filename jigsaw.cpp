@@ -222,7 +222,7 @@ int main (int argc, char *argv[])
 
 		fprintf(stderr, "[Arguments]\n");
 		fprintf(stderr, "<prefix>	The base name of the reference sequence index.\n");
-		fprintf(stderr, "<in.fastx>	Fasta or fastq input file.\n");
+		fprintf(stderr, "<in.fastx>	Fasta or fastq input file. (gz file allowed, - for STDIN)\n");
 		
 		/*
 		fprintf(stderr, "[\ninput options]\n");
