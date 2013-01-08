@@ -23,14 +23,14 @@ GetOptions (
 
 if (@ARGV != 2 && @ARGV != 3)
 {
-	print STDERR "Converts OLego SAM format to BED format, works for paired end data and saves into a single BED file, only reports the major alignments. \n";
-	print STDERR "Usage: $prog [options] <in.sam> <out1.bed> [out2.bed]\n\n";
-	print STDERR "Please specify both out1.bed and out2.bed if you want the paired-end reads output into two separate BED files. You can also use - to specify STDIN for input or STDOUT for output\n";
-	#print STDERR " -p: paired-end data\n";
-	print STDERR "-u,--uniq:		print uniquely mapped reads only\n";
-	print STDERR "-r,--use-RNA-strand:	force to use the strand of the RNA based on the XS tag \n";
-#	print STDERR "-s,--separate-bed:	for paired-end input, output two separate BED outputs \n";
-	print STDERR "-v,--verbose:		verbose\n";
+	print STDERR "Convert OLego SAM format to BED format (for both paired-end and single-end data)\n";
+	print STDERR "Usage: $prog [options] <in.sam> <out1.bed> [out2.bed]\n";
+	print STDERR " Specify both out1.bed and out2.bed to output results of PE data to separate BED files.\n";
+	print STDERR " You can also use - to specify STDIN for input or STDOUT for output\n";
+	print STDERR "options:\n";
+	print STDERR "-u,--uniq:            print uniquely mapped reads only\n";
+	print STDERR "-r,--use-RNA-strand:  force to use the strand of the RNA based on the XS tag \n";
+	print STDERR "-v,--verbose:         verbose\n";
 	exit (1);
 }
 
@@ -62,6 +62,7 @@ else
 {
     open ($fout, ">$outBedFile") || Carp::croak "cannot open file $outBedFile to write\n";
 }
+
 if ($separateBed)
 {
     if ($outBedFile2 eq  "-")
@@ -88,111 +89,141 @@ while (my $line = <$fin>)
 	print STDERR "$i ...\n" if $verbose && $i % 50000 == 0;
 	$i++;
 
-	my ($QNAME, $FLAG, $RNAME, $POS, $MAPQ, $CIGAR, $MRNM, $MPOS, $ISIZE, $SEQ, $QUAL, $TAG) = split (/\s+/, $line, 12);
+	my $sam = lineToSam ($line);
+	my $bed = samToBed ($sam);
+	next unless $bed; #no alignment
 
-	next if $CIGAR eq '*'; #no alignment
-
-	#print $line, "\n";
-	my $flagInfo = decodeSAMFlag ($FLAG);
-	#Carp::croak Dumper ($flagInfo), "\n";
+	my $flagInfo = $bed->{"flagInfo"};
 	Carp::croak "inconsistency in specifying PE or SE data\n" if ($flagInfo->{'PE'}==0 &&  $separateBed == 1);
-	#next unless $flagInfo->{'query_map'};
 
-	my $strand = $flagInfo->{'query_strand'};
-	if($useRNAStrand)
-	{
-	    if ($TAG=~/XS\:\S*\:([-+\.])/)
-	    {
-		$strand = $1;
-		$strand = '+' if ($1 eq '.');
-	    }
-	}
 	my $read1_or_2 = $flagInfo->{'read_1_or_2'};
 
-	my $name = $QNAME; #substr ($QNAME, 1);
-	my $chrom = $RNAME;
-	my $chromStart = $POS - 1;
-
-	$TAG = "" unless $TAG;
-	my $score = 0;
-	if ($TAG=~/NM\:\S*\:(\d+)/)
+	my $uniq = 0;
+	$uniq = 1 if $sam->{"TAGS"}=~/XT:A:U/;
+	
+	if ($printUniqOnly == 0 || $uniq == 1)
 	{
-			#Carp::croak "OK\n";
+		if ($separateBed && $read1_or_2 == 2)
+		{
+			print $fout2 bedToLine ($bed), "\n"  unless $flagInfo->{'query_nomap'};
+		}
+		else
+		{
+			print $fout bedToLine ($bed), "\n" unless $flagInfo->{'query_nomap'};
+		}
+	}
+}
+
+print STDERR "Done! Totally $i lines processed! \n" if $verbose;
+
+close ($fin);
+close ($fout);
+close ($fout2) if $separateBed;
+
+
+
+
+#subroutines in Align.pm
+sub lineToSam
+{
+	my $line = $_[0];
+	my ($QNAME, $FLAG, $RNAME, $POS, $MAPQ, $CIGAR, $MRNM, $MPOS, $ISIZE, $SEQ, $QUAL, $TAGS) = split (/\s+/, $line, 12);
+	return {
+	QNAME => $QNAME,
+	FLAG=> $FLAG,
+	RNAME=>$RNAME,
+	POS=>$POS,
+	MAPQ=>$MAPQ,
+	CIGAR=>$CIGAR,
+	MRNM=>$MRNM,
+	MPOS=>$MPOS,
+	ISIZE=>$ISIZE,
+	SEQ=>$SEQ,
+	QUAL=>$QUAL,
+	TAGS=>$TAGS
+	};
+}
+
+
+#return 0 if no alignment
+
+sub samToBed
+{
+	my ($sam, $useRNAStrand) = @_;
+	$useRNAStrand = 0 unless defined $useRNAStrand;
+
+	return 0 if $sam->{"CIGAR"} eq '*'; #no alignment
+	
+	my $flagInfo = decodeSamFlag ($sam->{"FLAG"});
+	
+	my $strand = $flagInfo->{'query_strand'};
+	
+	my $TAGS = "";
+	$TAGS = $sam->{"TAGS"} if $sam->{"TAGS"};
+
+	if ($useRNAStrand)
+	{
+		if ($TAGS=~/XS\:\S*\:([-+\.])/)
+		{
+			$strand = $1;
+			$strand = '+' if $strand eq '.';
+		}
+	}
+	my $read1_or_2 = $flagInfo->{'read_1_or_2'};
+	
+	my $name = $sam->{"QNAME"};
+	my $chrom = $sam->{"RNAME"};
+	my $chromStart = $sam->{"POS"} - 1;
+
+	my $score = 0;
+	if ($TAGS=~/NM\:\S*\:(\d+)/)
+	{
 		$score = $1;
 	}
 
-	my $uniq = 0;
-	$uniq = 1 if $TAG=~/XT:A:U/;
-	
+	my $CIGAR = $sam->{"CIGAR"};
+	my $QNAME = $sam->{"QNAME"};
+	my $SEQ = $sam->{"SEQ"};
 
-	my ($chromEnd, $block1End, $block2Start, $blockNum);
-	my $outStr;
-
-=obsolete
-	$TAG=~/\:(\d+)$/;
-	my $score = $1;
-	
-	$blockNum = 1;
-	if ($CIGAR =~/^(\d+)M$/)
-	{
-		$chromEnd = $chromStart + $1 - 1;
-		$outStr = join ("\t", $chrom, $chromStart, $chromEnd + 1, $name, $score, $strand);
-	}
-	elsif ($CIGAR =~/^(\d+)M(\d+)N(\d+)M$/) #two block
-	{
-		#Carp::croak "junctions detected: $line\n";
-		$blockNum = 2;
-		$block1End = $chromStart + $1 - 1;
-		$block2Start = $chromStart + $1 + $2;
-		$chromEnd = $block2Start + $3 - 1;
-		$outStr = join ("\t", $chrom, $chromStart, $chromEnd + 1, $name, $score, $strand, 
-					$chromStart, $chromEnd + 1, 0, 2, "$1,$3", "0,".($1+$2));
-	}
-	else
-	{
-		Carp::croak "unexpected CIGAR string: $CIGAR in $QNAME\n";
-	}
-=cut
-
-	if ($CIGAR=~/[^\d+|M|N|I|D]/g)
+	if ($sam->{"CIGAR"}=~/[^\d+|M|N|I|D]/g)
 	{
 		Carp::croak "unexpected CIGAR string: $CIGAR in $QNAME: $SEQ\n";
 	}
 
 	my (@blockSizes, @blockStarts);
-
+	
 	my $currLen = 0;
 	my $extendBlock = 0;
-	while ($CIGAR=~/(\d+)([M|N|I|D])/g)
+
+	while ($CIGAR =~/(\d+)([M|N|I|D])/g)
 	{
 		my ($size, $type) = ($1, $2);
-		
 		if ($type eq 'I' || $type eq 'D')
-		{	#insertion in reads
+		{
+			#insertion in reads
 			$extendBlock = 1;
 			if ($type eq 'D')
 			{
 				my $n = @blockSizes;
 				if ($n < 1)
 				{
-					$chromStart += $size;
+					$chromStart += $size;	
 				}
 				else
 				{
-					#Carp::croak $line, "\n" if @blockSizes <= 0;
-					$blockSizes[$#blockSizes] += $size; # if $type eq 'D';
+					$blockSizes[$#blockSizes] += $size;
 					$currLen += $size;
 				}
 			}
 			next;
 		}
+
 		if ($type eq 'M')
 		{
 			if ($extendBlock && @blockSizes > 0)
 			{
 				#extend the previous block
 				my $n = @blockSizes;
-				#Carp::croak $line, "\n" if $n <= 0;
 				$blockSizes[$n-1] += $size;
 			}
 			else
@@ -204,54 +235,88 @@ while (my $line = <$fin>)
 		}
 		$currLen += $size;
 	}
-
+	
 	my $blockCount = @blockSizes;
-	$chromEnd = $chromStart + $blockStarts[$blockCount-1] + $blockSizes[$blockCount-1] - 1;
+	my $chromEnd = $chromStart + $blockStarts[$blockCount-1] + $blockSizes[$blockCount-1] - 1;
+	
+	my $bed = {
+		chrom=>$chrom,
+		chromStart=>$chromStart,
+		chromEnd=>$chromEnd,
+		name=>$name,
+		score=>$score,
+		strand=>$strand,
+		thickStart=>$chromStart,
+		thickEnd=>$chromEnd,
+		itemRgb=>0,
+		blockCount=>$blockCount,
+		blockSizes=>\@blockSizes,
+		blockStarts=>\@blockStarts,
+		flagInfo=>$flagInfo
+	};
+}	
 
-	$outStr = join ("\t", $chrom, $chromStart, $chromEnd + 1, $name, $score, $strand,
-		$chromStart, $chromEnd + 1, 0, $blockCount, join (",", @blockSizes), join(",", @blockStarts));
-
-	if ($separateBed && $read1_or_2 == 2)
-	{
-	        if ($printUniqOnly == 0 || $uniq == 1)
-		{
-		    print $fout2 $outStr, "\n"  unless $flagInfo->{'query_map'};
-		}
-	}
-	else
-	{
-		if ($printUniqOnly == 0 || $uniq == 1)
-		{
-			print $fout $outStr, "\n" unless $flagInfo->{'query_map'};
-		}
-	}
-}
-print STDERR "Done! Totally $i lines processed! \n" if $verbose;
-
-close ($fin);
-close ($fout);
-close ($fout2) if $separateBed;
-
-
-sub decodeSAMFlag
+sub decodeSamFlag
 {
 	my $flag = $_[0];
-	
-	#print "flag = $flag\n";
 	$flag = sprintf ("%012b", $flag);
-
-	#print "flag binary = $flag\n";
 	my @flags = split (//, $flag);
 
 	my $flagInfo = {
-		PE=>$flags[11],
-		PE_map=>$flags[10],
-		query_map=>$flags[9],
-		mate_map=>$flags[8],
-		query_strand=>$flags[7] == 0 ? '+' : '-',
-		mate_strand=>$flags[6] == 0 ? '+' : '-',
-		read_1_or_2=> $flags[5] == 1 ? 1 : 2 };
+		PE=>$flags[11],					#1 means paired-end data
+		PE_map=>$flags[10],				#1 means each end is properly aligned according to the aligner
+		query_nomap=>$flags[9],				#1 means this read is unmapped
+		mate_nomap=>$flags[8],				#1 means its mate is unmapped
+		query_strand=>$flags[7] == 0 ? '+' : '-',	#1 means the strand of this read is on the negative strand
+		mate_strand=>$flags[6] == 0 ? '+' : '-',	#1 means its mate is on the negative strand
+		read_1_or_2=> $flags[5] == 1 ? 1 : 2 		#1 means this is read1
+	};
 	return $flagInfo;
+}	
+
+
+
+#subroutine in Bed.pm
+sub bedToLine
+{
+	my $region = $_[0];
+	
+	my @colNames = qw (chrom chromStart chromEnd name score strand thickStart thickEnd itemRgb blockCount blockSizes blockStarts);
+	
+	my $colNum = 12; #keys %$region;
+	
+	my %rCopy = %$region;
+	$rCopy{"chromEnd"} += 1;
+	if (exists $rCopy{'thickEnd'})
+	{
+		$rCopy{'thickEnd'} += 1;
+	}
+	
+	if (exists $rCopy{'blockCount'})
+	{
+		Carp::croak "no blockSizes\n" unless exists $rCopy {'blockSizes'};
+		Carp::croak "no blockStarts\n" unless exists $rCopy {'blockStarts'};
+			
+		$rCopy{'blockSizes'} = join (",", @{$rCopy{'blockSizes'}});
+		$rCopy{'blockStarts'} = join (",", @{$rCopy{'blockStarts'}});
+	}
+	
+	my $ret = join ("\t", $rCopy{"chrom"}, $rCopy{"chromStart"}, $rCopy{"chromEnd"});
+	for (my $i = 3; $i < $colNum; $i++)
+	{
+		my $col = $colNames[$i];
+		if (exists $rCopy{$col})
+		{
+			$ret .= "\t" . $rCopy{$col};
+		}
+		else
+		{
+			last;
+			#Carp::croak "col=$col is not defined\n"; 
+		}
+	}
+	return $ret;
 }
+
 
 
