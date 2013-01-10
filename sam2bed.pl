@@ -25,8 +25,9 @@ if (@ARGV != 2 && @ARGV != 3)
 {
 	print STDERR "Convert OLego SAM format to BED format (for both paired-end and single-end data)\n";
 	print STDERR "Usage: $prog [options] <in.sam> <out1.bed> [out2.bed]\n";
-	print STDERR " Specify both out1.bed and out2.bed to output results of PE data to separate BED files.\n";
-	print STDERR " You can also use - to specify STDIN for input or STDOUT for output\n";
+	print STDERR " <in.sam> : gzip compressed input file with .gz extension is allowed\n";
+	print STDERR " <out1.bed> [out2.bed]: specify both out1.bed and out2.bed to output results of PE data to separate BED files.\n";
+	print STDERR " You can also use - to specify STDIN for input or STDOUT for output\n\n";
 	print STDERR "options:\n";
 	print STDERR "-u,--uniq:            print uniquely mapped reads only\n";
 	print STDERR "-r,--use-RNA-strand:  force to use the strand of the RNA based on the XS tag \n";
@@ -52,7 +53,14 @@ if ( $inSAMFile eq "-")
 }
 else
 {
-    open ($fin, "<$inSAMFile") || Carp::croak "cannot open file $inSAMFile to read\n";
+	if ($inSAMFile =~/\.gz$/)
+	{
+		open ($fin, "gunzip -c $inSAMFile | ") || Carp::croak "cannot open file $inSAMFile to read\n";
+	}
+	else
+	{
+    	open ($fin, "<$inSAMFile") || Carp::croak "cannot open file $inSAMFile to read\n";
+	}
 }
 if ( $outBedFile eq "-")
 {
@@ -150,7 +158,7 @@ sub lineToSam
 sub samToBed
 {
 	my ($sam, $useRNAStrand) = @_;
-	$useRNAStrand = 0 unless defined $useRNAStrand;
+	$useRNAStrand = 0 unless $useRNAStrand;
 
 	return 0 if $sam->{"CIGAR"} eq '*'; #no alignment
 	
