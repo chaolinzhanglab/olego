@@ -124,9 +124,9 @@ while (my $line = <$fin>)
 
 print STDERR "Done! Totally $i lines processed! \n" if $verbose;
 
-close ($fin);
-close ($fout);
-close ($fout2) if $separateBed;
+close ($fin) if $inSAMFile ne '-';
+close ($fout) if $outBedFile ne '-';
+close ($fout2) if $separateBed && $outBedFile2 ne '-';
 
 
 
