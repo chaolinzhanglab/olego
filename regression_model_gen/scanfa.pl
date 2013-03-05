@@ -19,7 +19,7 @@ chomp(@chromList);
 my $len_chromList = @chromList;
 my %chr_hash;
 foreach my $one (@chromList){
-     if($one =~/\/(chr.[^\/]*?)\.*fa$/i){
+     if($one =~/\/([^\/]*?)\.*fa$/i){
             $chr_hash{$1} = $one;
         }
 }

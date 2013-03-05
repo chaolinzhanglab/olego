@@ -19,15 +19,15 @@ chomp(@chromList);
 $len_chromList = @chromList;
 print "BED2FA: in $input_file_2, found $len_chromList chromosomes\n";
 foreach $one (@chromList){
-	if($one =~ /\/(chr.[^\/]*?)\.*fa$/i){
+	if($one =~ /\/([^\/]*?)\.*fa$/i){
 		$chr_hash{$1} = $one;
 		#print $1,"\n";	
 	}
 }
 @key_chr_hash = keys(%chr_hash);
 $len_key_chr_hash = @key_chr_hash;
-@sort_key_chr_hash = sort_chromNo(@key_chr_hash);
-$len_sort_key_chr_hash = @sort_key_chr_hash;
+#@sort_key_chr_hash = sort_chromNo(@key_chr_hash);
+#$len_sort_key_chr_hash = @sort_key_chr_hash;
 #for($i=0; $i<$len_sort_key_chr_hash; $i++){
 #	print "$sort_key_chr_hash[$i]	$chr_hash{$sort_key_chr_hash[$i]}\n";
 #}
