@@ -13,10 +13,6 @@
 #include "bwtgap.h"
 #include "utils.h"
 
-#ifndef PACKAGE_VERSION
-#define PACKAGE_VERSION "1.0.8"
-#endif
-
 
 int main (int argc, char *argv[])
 {
@@ -109,7 +105,7 @@ int main (int argc, char *argv[])
 	int option_index = 0;
 
 	while ((c = getopt_long (argc, argv,
-				"c012o:w:W:M:m:I:i:a:j:r:t:k:vLsn",
+				"c012o:w:W:M:m:I:i:e:a:j:r:t:k:vLsn",
 				long_options, &option_index)) >= 0) {
 		switch (c) {
 		case -1 : break; //the end of the options
@@ -288,10 +284,15 @@ int main (int argc, char *argv[])
 			k = l;
 		}
 	}
+	fprintf(stderr,"Command used: ");
+	for(int i = 0; i < argc; i++ ){
+		fprintf(stderr,"%s ", argv[i]);
+	}
+	fprintf(stderr,"\n");
 	if (opt->non_denovo_search && (opt->junction_file == 0)) {
 	    fprintf(stderr,"[olego_aln] Warning! Non-denovo search mode without junction annotation, no splice mapping will be reported!\n" );
 	}
-	jigsaw_aln_core(argv[optind], argv[optind+1], opt);
+	jigsaw_aln_core(argv[optind], argv[optind+1], opt, argc, argv);
 	free(opt);
 	return 0;
 }

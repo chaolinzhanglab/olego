@@ -29,6 +29,10 @@
 #define bns_pac(pac, k) ((pac)[(k)>>2] >> ((~(k)&3)<<1) & 3)
 #endif
 
+#ifndef PACKAGE_VERSION
+#define PACKAGE_VERSION "1.0.8"
+#endif
+
 using namespace std;
 
 typedef struct {
@@ -272,7 +276,7 @@ extern "C" {
 #endif
 
 	gap_opt_t *gap_init_opt();
-	void jigsaw_aln_core(const char *prefix, const char *fn_fa, gap_opt_t *opt);
+	void jigsaw_aln_core(const char *prefix, const char *fn_fa, gap_opt_t *opt, int argc, char *argv[]);
 	int bwa_cal_maxdiff(int l, double err, double thres);
 
 

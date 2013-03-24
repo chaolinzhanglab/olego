@@ -4109,7 +4109,9 @@ jigsaw_cigar_t *bwa_aln_path2cigar(const path_t *path, int path_len, int *n_ciga
 /*The core function to read and align reads, and print output*/
 void jigsaw_aln_core(const char *prefix, /*prefix of the genome index*/
 		const char *fn_fa, /*fasta or fastq file of query reads*/
-		gap_opt_t *opt /*alignment options*/)
+		gap_opt_t *opt, /*alignment options*/
+		int argc,
+		char *argv[])
 {
 	//variables to calculate SA intervals
 	int i, n_seqs, tot_seqs = 0;
@@ -4197,6 +4199,18 @@ void jigsaw_aln_core(const char *prefix, /*prefix of the genome index*/
 	//if (opt->verbose) fprintf (stderr, "aligning reads ...\n");
 
 	bwa_print_sam_SQ(bns, bwa_rg_line);
+	//print @PG tags
+	printf("@PG\tID:OLego\tVN:%s\tCL:",PACKAGE_VERSION );
+        for(int i = 0; i < argc; i++ ){
+                printf("%s ", argv[i]);
+        }
+	 printf("\n");
+	
+	//print information into stderr as well
+	if (opt->verbose) {
+		fprintf(stderr, "\nOLego: version %s\n", PACKAGE_VERSION);
+                fprintf(stderr, "Compiled at %s, %s\n", __TIME__, __DATE__);
+	}
 	//set ks
 	ks = bwa_open_reads(opt->mode, fn_fa);
 
