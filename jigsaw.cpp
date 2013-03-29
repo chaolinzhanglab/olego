@@ -239,7 +239,7 @@ int main (int argc, char *argv[])
 		fprintf(stderr, " -r,--regression-model FILE   The file with the logistic regression model\n");
 		fprintf(stderr, " -M,--max-total-diff   INT    Max #diff (int)[%d] or missing prob under %.2f err rate (float) [%.2f]\n",opt->max_diff, BWA_AVG_ERR, opt->fnr);
 		fprintf(stderr, " -w,--word-size        INT    Seed size in junction search [%d]\n", opt->word_size);
-		fprintf(stderr, " -W,--max-word-occ     INT    Max #occurrence of a seed to be used in the further steps  [%d]\n", opt->max_word_occ);
+		fprintf(stderr, " -W,--max-word-occ     INT    Max #occurrence of a seed to be used in the further steps  [max (%d * 3^(%d-word_size), 300) ]\n", opt->max_word_occ, opt->word_size);
 		fprintf(stderr, " -m,--max-word-diff    INT    Max #diff allowed a seed [%d]\n", opt->max_word_diff);
 		fprintf(stderr, " -I,--max-intron       INT    Max intron size for de novo search [%d]\n", opt->max_intron_size);
 		fprintf(stderr, " -i,--min-intron       INT    Min intron size for de novo search [%d]\n", opt->min_intron_size);
@@ -292,6 +292,10 @@ int main (int argc, char *argv[])
 	if (opt->non_denovo_search && (opt->junction_file == 0)) {
 	    fprintf(stderr,"[olego_aln] Warning! Non-denovo search mode without junction annotation, no splice mapping will be reported!\n" );
 	}
+	//set max_word_occ based on the word size
+	opt->max_word_occ =  opt->max_word_occ * pow (3, 14 - opt->word_size );
+	if (opt->max_word_occ < 300 ) opt->max_word_occ = 300;
+	
 	jigsaw_aln_core(argv[optind], argv[optind+1], opt, argc, argv);
 	free(opt);
 	return 0;
