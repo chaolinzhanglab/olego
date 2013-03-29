@@ -98,7 +98,7 @@ while (my $line = <$fin>)
 	$i++;
 
 	my $sam = lineToSam ($line);
-	my $bed = samToBed ($sam);
+	my $bed = samToBed ($sam, $useRNAStrand);
 	next unless $bed; #no alignment
 
 	my $flagInfo = $bed->{"flagInfo"};
@@ -168,10 +168,9 @@ sub samToBed
 	
 	my $TAGS = "";
 	$TAGS = $sam->{"TAGS"} if $sam->{"TAGS"};
-
 	if ($useRNAStrand)
 	{
-		if ($TAGS=~/XS\:\S*\:([-+\.])/)
+		if ($TAGS=~/XS\:\S*\:([\-\+\.])/)
 		{
 			$strand = $1;
 			$strand = '+' if $strand eq '.';

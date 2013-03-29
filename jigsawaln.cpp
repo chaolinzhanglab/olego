@@ -3097,13 +3097,22 @@ void jigsaw_pair_exons (bwa_seq_t *seq, list<jigsaw_exon_t*> *exons, const gap_o
  */
 bool jigsaw_junction_comp_strand_pos_t (const jigsaw_junction_t *a, const jigsaw_junction_t *b)
 {
-	if (a->uexon->strand < b->uexon->strand) return true; //positive strand (0) first
+	if (a->uexon->strand < b->uexon->strand) return true;
+	else if (a->uexon->strand > b->uexon->strand)return false; //positive strand (0) first
+
+	if (a->sense_strand < b->sense_strand) return true;
 	else if (a->sense_strand > b->sense_strand) return false;
-	else {//the same strand compare position
-		int64_t sa = a->uexon->start_t;
-		int64_t sb = b->uexon->start_t;
-		return sa < sb ? true : false;
-	}
+
+	//the same strand compare position
+	int64_t sa = a->uexon->start_t;
+	int64_t sb = b->uexon->start_t;
+	if (sa < sb ) return true;
+	else if (sa > sb ) return false;
+	
+
+	if (a->start_t <  b->start_t) return true;
+	else if (a->start_t >  b->start_t) return false;
+	else return (a->end_t < b->end_t);
 }
 
 /* sort hits (ascendingly) by strand and position on the genome
