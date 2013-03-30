@@ -38,7 +38,7 @@ gap_opt_t *gap_init_opt()
 	   rate. Voilating this requirement will break pairing! */
 	o->word_size = 14;
 	o->max_word_diff = 0;
-	o->max_word_occ = 1000 ; // this is the base number, need to * pow(3, 14 - o->word_size);
+	o->max_word_occ =  -1 ; // will reset this in jigsaw.cpp
 	o->min_anchor = 8;
 	o->known_junc_min_anchor = 5;
 	o->max_overhang = 6;
