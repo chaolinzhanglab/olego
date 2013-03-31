@@ -3460,24 +3460,36 @@ void jigsaw_search_exonic_aln (jigsaw_spliced_aln_cluster_t *clust, bwa_seq_t *s
               jigsaw_exon_t *p = *iter;
 	      if(p->start_q == 0 && p->end_q == seq->len -1)
 	      {
-		  // make a new exonic alignment, use the same data structure, but no junctions
-		  jigsaw_spliced_aln_t *curr_aln = (jigsaw_spliced_aln_t *) calloc (1, sizeof (jigsaw_spliced_aln_t));
-		  // init' this aln
-		  curr_aln->junctions = NULL;
-		  curr_aln->strand = p->strand;
-		  curr_aln->sense_strand = 2;// cannot be determined from data
-		  curr_aln->start_t = p->start_t;
-		  curr_aln->start_q = p->start_q;
-		curr_aln->end_t = p->end_t;
-		curr_aln->end_q = p->end_q;
-		curr_aln->n_mm = p->n_mm;
-		curr_aln->n_gapo_t = p->n_gapo_t;
-		curr_aln->n_gape_t = p->n_gape_t;
-		curr_aln->n_gapo_q = p->n_gapo_q;
-		curr_aln->n_gape_q = p->n_gape_q;
-		curr_aln->diff =curr_aln->n_mm + curr_aln->n_gapo_t + curr_aln->n_gape_t + curr_aln->n_gapo_q + curr_aln->n_gape_q;
-		curr_aln->logistic_prob = 1.0;
-		aln->push_back(curr_aln);			  
+		//check if this pos_t already recorded
+		bool aln_checker = 0;
+		list<jigsaw_spliced_aln_t*>::iterator aln_iter;
+		for (aln_iter = aln->begin(); aln_iter != aln->end (); aln_iter++){
+			jigsaw_spliced_aln_t *check_aln = *aln_iter;
+			if ( check_aln->junctions == NULL and check_aln->start_t == p->start_t ) {
+				aln_checker = 1;
+				break;
+			}
+		}
+		if ( aln_checker ==0 ){
+			  // make a new exonic alignment, use the same data structure, but no junctions
+			  jigsaw_spliced_aln_t *curr_aln = (jigsaw_spliced_aln_t *) calloc (1, sizeof (jigsaw_spliced_aln_t));
+			  // init' this aln
+			  curr_aln->junctions = NULL;
+			  curr_aln->strand = p->strand;
+			  curr_aln->sense_strand = 2;// cannot be determined from data
+			  curr_aln->start_t = p->start_t;
+			  curr_aln->start_q = p->start_q;
+			curr_aln->end_t = p->end_t;
+			curr_aln->end_q = p->end_q;
+			curr_aln->n_mm = p->n_mm;
+			curr_aln->n_gapo_t = p->n_gapo_t;
+			curr_aln->n_gape_t = p->n_gape_t;
+			curr_aln->n_gapo_q = p->n_gapo_q;
+			curr_aln->n_gape_q = p->n_gape_q;
+			curr_aln->diff =curr_aln->n_mm + curr_aln->n_gapo_t + curr_aln->n_gape_t + curr_aln->n_gapo_q + curr_aln->n_gape_q;
+			curr_aln->logistic_prob = 1.0;
+			aln->push_back(curr_aln);			  
+		}
 	      }
 	}
 			     
