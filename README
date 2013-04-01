@@ -2,9 +2,11 @@ OLego -- short or long RNA-seq read mapping to discover exon junction
 
 Jie Wu (wuj@cshl.edu), Chaolin Zhang (cz2294@columbia.edu)
 
-Updated on Nov 19th, 2012
+Updated on Mar. 31st, 2013
 
 We are updating the manual frequently, so please check regularly for updates! 
+
+Please find the most recent documentation at http://zhanglab.c2b2.columbia.edu/index.php/OLego_Documentation
 
 What is OLego?
 ======================
@@ -13,8 +15,21 @@ OLego is a program specifically designed for de novo spliced mapping of mRNA-seq
 
 OLego is an open source code project and released under GPLv3. The implementation of OLego relies heavily on BWA (version 0.5.9rc1, http://bio-bwa.sourceforge.net/).  It also uses some source code from the Jim Kent source code tree (http://genome.ucsc.edu/admin/git.html). 
 
+Citation
+======================
+Wu,J., Anczukow,O., Krainer,A.R., Zhang,M.Q. , Zhang,C. , 2013. OLego: Fast and sensitive mapping of spliced mRNA-Seq reads using small seeds. Nucleic Acids Res. , In press.
+
 Versions
 ======================
+
+v1.1.0 ( 3-31-2013 )
+---------------------
+* Bug fixed for duplicate entries for some reads, sensitivity improved.
+* Optimized on option -W.
+* Bug fixed in sam2bed.pl.
+* Bug fixed for option -e.
+* Bug fixed for regression_model_gen.
+* Add support for gzip input file for sam2bed.pl.
 
 v1.0.8 ( 11-20-2012 )
 ---------------------
@@ -61,11 +76,23 @@ The major programs of OLego ( olego and olegoindex ) can be installed and ran on
 Download
 ======================
 
+Codes and binaries
+----------------------
+
 The code and binary files can be found at http://sourceforge.net/projects/ngs-olego/files/ , we are regularly updating the code, so please check regularly to keep your code updated. The code can also be reached via git::
 
 	git clone git://git.code.sf.net/p/ngs-olego/code ngs-olego-code
 
 The main programs of OLego (olego and olegoindex ) can be installed and run on Unix-based system with GCC compiler installed. We also provide scripts for post analysis and regression model construction. These codes may require Perl and R installed. 
+
+The exon junction database
+-----------------------------
+
+We have built a non-redundant, comprehensive exon junction database (only GT/AG splice sites for now) from RefSeq, mRNAs, and ESTs. We recommend one to provide the junction database for alignment (with -j) to obtain improved sensitivity.
+
+Download human (hg19: http://zhanglab.c2b2.columbia.edu/data/OLego/hg19.intron.hmr.bed.gz ) (356,777 unique junctions), mouse (mm10: http://zhanglab.c2b2.columbia.edu/data/OLego/mm10.intron.hmr.bed.gz) (309,670 unique junctions), rat (rn5: http://zhanglab.c2b2.columbia.edu/data/OLego/rn5.intron.hmr.bed.gz) (285,745 unique junctions).
+
+In each of the files above, exon junctions from human, mouse and rat were lifted over to the other species and consolidated to remove redundancy.
 
 Installation
 ======================
@@ -167,9 +194,10 @@ Basic options:
 			    seeds will be evenly distributed on the read from the start to the end,
 			    so please try to cover the read as much as possible with a reasonable 
 			    seed size. (13 nt for 36 nt reads is a BAD example. )
-    -W,--max-word-occ	    Maximum number of matches of a seed (INT) [ default: 1000]. If a seed has
-			    more than this number of hits on the genome, then it will be considerred 
-			    repeptive and all of its hits will be discarded. 
+    -W,--max-word-occ	    Maximum number of matches of a seed (INT) 
+                            [ default: max (1000 * 3^(14-word_size), 300)]. If a seed has more than this 
+			    number of hits on the genome, then it will be considerred repeptive and all 
+			    of its hits will be discarded. 
     -m,--max-word-diff	    Maximum edit distance allowed for each seed (INT) [ default: 0 ]. 
 			    Since our seed size is smaller than other programs, we recommend that 
 			    the user use a small number for this option.  
