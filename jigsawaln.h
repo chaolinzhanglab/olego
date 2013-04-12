@@ -251,6 +251,7 @@ typedef struct {
 	splice_site_map_t *splice_site_map;
 	uint32_t verbose;
 	uint32_t single_anchor_search;
+	uint32_t allow_rep_anchor;
 	uint32_t non_denovo_search;
 	uint32_t report_best_only;
 	double min_logistic_prob;

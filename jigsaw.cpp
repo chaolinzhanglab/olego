@@ -81,6 +81,7 @@ int main (int argc, char *argv[])
 
 			/*advanced options*/
 			{"non-single-anchor",	no_argument,		0, 0},
+			{"allow-rep-anchor",   no_argument,            0, 0},
 			{"strand-mode",         required_argument,      0, 0},
 			{"max-multi",           required_argument,      0, 0},
 			{"min-logistic-prob",         required_argument,      0, 0},
@@ -197,6 +198,9 @@ int main (int argc, char *argv[])
 			else if (strcmp (long_options[option_index].name, "non-single-anchor") == 0) {
 				opt->single_anchor_search = 0;
 			}
+			else if (strcmp (long_options[option_index].name, "allow-rep-anchor") == 0) {
+				opt->allow_rep_anchor = 1;
+			}
 
 			//	int tmp = optarg;
 			//}
@@ -251,6 +255,7 @@ int main (int argc, char *argv[])
 
 		fprintf(stderr, "\n[advanced options]\n");
 		fprintf(stderr, " --non-single-anchor          Disable single-anchor de novo junction search \n");
+		fprintf(stderr, " --allow-rep-anchor           Allow anchors with simple repetitive sequences \n");
 		fprintf(stderr, " --strand-mode         INT    Strand searching mode, 1:forward, 2: reverse, 3 both. [%d]\n", opt->strand_mode);
 		fprintf(stderr, " --max-multi           INT    Max # of multi alignments reported [%d]\n", opt->max_report_multi);
 		fprintf(stderr, " --min-logistic-prob   FLOAT  Min logistic probability required for an alignment, in the range of [0,1) [%.2f]\n", opt->min_logistic_prob);

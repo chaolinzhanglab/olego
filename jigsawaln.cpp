@@ -48,6 +48,7 @@ gap_opt_t *gap_init_opt()
 	o->max_intron_size = 500000;
 	o->min_intron_size = 20;
 	o->single_anchor_search = 1;
+	o->allow_rep_anchor = 0;
 	o->non_denovo_search = 0;
 	o->strand_mode = 3;
 	o->min_logistic_prob = 0.5;
@@ -146,6 +147,24 @@ void jigsaw_cal_sa_reg_gap(bwt_t *const bwt[2], bwa_seq_t *seq, gap_stack_t *sta
 	free(w[0]); free(w[1]);
 }
 
+bool jigsaw_check_seq_complexity (jigsaw_anchor_seq_t *anchor_seq)
+{
+	//if the seq is repetitive, return a 1, otherwise, return a 0
+	bool is_repetitive = 1;
+	ubyte_t *di_nt = (ubyte_t*) calloc (2, sizeof(ubyte_t) );
+	di_nt[0] = anchor_seq->seq[0];
+	di_nt[1] = anchor_seq->seq[1];
+	for (int i = 2; i<anchor_seq->len; i++){
+		if (anchor_seq->seq[i] != di_nt[i%2] ){
+			is_repetitive = 0;
+			break;
+		}
+	}
+	free(di_nt);
+	return is_repetitive;
+
+}
+
 /*
   this function returns a list of all hits of an anchor sequence
   for single anchor search
@@ -155,6 +174,9 @@ void jigsaw_collect_anchor_hits (bwt_t *const bwt[2], jigsaw_anchor_seq_t *ancho
                 int64_t l_pac, const ubyte_t *pacseq, const ubyte_t *ntpac,
 		int max_word_occ, const gap_opt_t *opt, list<jigsaw_word_hit_t*> *hits)
 {
+	//check if the anchor_seq is low-complexity, those seqs will highly affect the mapping speed. 
+	//e.g. GTGTGTGTGT, ACACACACAC 
+	if ( ( ! opt->allow_rep_anchor ) && jigsaw_check_seq_complexity (anchor_seq) ) return;
 	gap_opt_t local_opt = *opt;
 	
 	//local_opt.max_diff = opt->max_word_diff;
@@ -3952,7 +3974,8 @@ void jigsaw_aln_one (bwt_t *const bwt[2], bwa_seq_t *seq, const int *g_log_n,
 		gap_stack_t *stack, int n_occ, const gap_opt_t *opt)
 {
 	bwa_seq_t *p = seq;
-
+	//clock_t t;
+	//t = clock();
 	//do standard search first
 	//fprintf (stderr, "standard alignment\n");
 	//fprintf (stderr,"%s\n", seq->name);
@@ -4006,6 +4029,8 @@ void jigsaw_aln_one (bwt_t *const bwt[2], bwa_seq_t *seq, const int *g_log_n,
 			
 		}
 	}
+//	fprintf(stderr, "%s\t%.2f\t %ld\n", seq->name, (float)(clock() - t),  CLOCKS_PER_SEC);
+
 }
 
 
