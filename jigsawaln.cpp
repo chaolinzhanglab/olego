@@ -58,10 +58,10 @@ gap_opt_t *gap_init_opt()
 	o->report_best_only = 0;
 	o->indel_end_skip = 5; o->max_del_occ = 10; o->max_entries = 2000000;
 	o->n_batch = 0x40000;
-	o->max_report_multi = 1000;
+	o->max_report_multi = 20;
 	o->mode = BWA_MODE_GAPE | BWA_MODE_COMPREAD;
 	//o->seed_len = 32; o->max_seed_diff = 2;
-	o->fnr = 0.04;
+	o->fnr = 0.06;
 	o->n_threads = 1;
 	o->max_top2 = 30;
 	o->trim_qual = 0;
