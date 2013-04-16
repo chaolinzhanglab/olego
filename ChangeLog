@@ -1,0 +1,193 @@
+commit 9a547ccd8bf646450d809a1afe859b62844a9df2
+Author: Jie Wu <wuj@cshl.edu>
+Date:   Tue Nov 20 16:46:15 2012 -0600
+
+    improved the hit clustering step.
+
+commit 224e722aa4e47e3baf3eee24279d31ef8ba50668
+Author: wuj <wuj@cshl.edu>
+Date:   Sun Oct 28 09:57:26 2012 -0400
+
+    some minor fixs, and added pipe support for mergePEsam.pl
+
+commit d86754a7f7449891c065b1eecc5ee2b965f97988
+Author: wuj <wuj@cshl.edu>
+Date:   Fri Oct 26 15:26:51 2012 -0400
+
+    edits in readme
+
+commit 63db9e493b0b5d5436013c548f4986cd5c39865e
+Author: Jie Wu <wuj@cshl.edu>
+Date:   Tue Oct 23 19:48:44 2012 -0500
+
+    fixed the overestimation problem in counting the mismatches when searching splice sites inside an "exon", the redundant counted diffs are now substracted from the total diff. However, there is still potential over counting at the end of the reads.
+
+commit 757302a2d24f203684f3fcd6e7aee652dee3d04a
+Author: Jie Wu <wuj@cshl.edu>
+Date:   Fri Oct 12 15:48:12 2012 -0500
+
+    minor fix
+
+commit 067acefe9ad0b48f8a647bc6a2e903709d826b9e
+Author: Jie Wu <wuj@cshl.edu>
+Date:   Fri Oct 12 12:44:26 2012 -0500
+
+    fixed a bug in merging, reverse & complimentary the seqs when the XA strand != the strand of the main entry
+
+commit 58bdd1de3830f8586bc2eb14de4fa1122789609c
+Author: Jie Wu <wuj@cshl.edu>
+Date:   Thu Oct 11 12:35:36 2012 -0500
+
+    fixed a bug, XS tag not assigned for XA exon body reads
+
+commit a3832a323b3d5526ec494944c899138e3f199f31
+Merge: b84eb31 e5f8b83
+Author: wuj <wuj@cshl.edu>
+Date:   Tue Oct 9 19:47:07 2012 -0400
+
+    Merge commit 'e5f8b83'
+
+commit e5f8b835476d58c12d79dee18c4a9715ef714084
+Author: wuj <wuj@cshl.edu>
+Date:   Tue Oct 9 19:42:59 2012 -0400
+
+    allow pipe for bed2junc.pl sam2bed.pl
+
+commit b84eb317dd0a64179d3d19360ac28a379094f538
+Merge: 0e278f0 b40ac5e
+Author: Chaolin Zhang <zhangc@okito.rockefeller.edu>
+Date:   Thu Sep 20 17:49:48 2012 -0400
+
+    Merge branch 'master' of ssh://git.code.sf.net/p/ngs-olego/code
+
+commit 0e278f02e0e9716c01e57d287413e2e845a4b4c9
+Author: Chaolin Zhang <zhangc@okito.rockefeller.edu>
+Date:   Thu Sep 20 17:48:56 2012 -0400
+
+    minor fix in usage information of jigsawindex.c
+
+commit b40ac5e903048e2b3f21859fe440a68cce57df3b
+Author: wuj <wuj@cshl.edu>
+Date:   Thu Aug 9 13:35:43 2012 -0400
+
+    1.0.6
+    Added option --max-multi (default:1000) to avoid huge data in a single line.
+    Added option --num-reads-batch.
+    Fixed a bug in the junction connecting step.
+
+commit cc2b0213cea7d9251c8553c9be2bee4b2e0085bf
+Author: wuj <wuj@cshl.edu>
+Date:   Mon Jul 16 16:17:13 2012 -0400
+
+    version number change
+
+commit f59a5c97d09e4538b22eca1e8d260f30752eddd9
+Author: wuj <wuj@cshl.edu>
+Date:   Mon Jul 16 15:59:04 2012 -0400
+
+    	modified:   ChangeLog
+
+commit defd1572e058d65086fd544e5524a7edc1a55aad
+Author: wuj <wuj@cshl.edu>
+Date:   Mon Jul 16 15:54:08 2012 -0400
+
+    v1.0.5 (minor bug fixed)
+
+commit 7590a6e4c0ee1c98a9ab26d4ce4cec1bafc61be5
+Author: wuj <wuj@cshl.edu>
+Date:   Sat Jun 16 00:04:08 2012 -0400
+
+    minor change
+
+commit f9be7e4c77fb8208f74c58cf1ece212d94f88802
+Author: wuj <wuj@cshl.edu>
+Date:   Wed Jun 13 13:37:45 2012 -0400
+
+    changes in sam2bed to allow separate BED outputs for PE data
+
+commit 0309e5b34d476ee93a7e6abf872a16f18ac1768a
+Author: Chaolin Zhang <zhangc@okito.rockefeller.edu>
+Date:   Tue Jun 12 16:35:46 2012 -0400
+
+    removed the -c option in olegoindex
+
+commit 478722413655017574e5970b6f0f2d364e035774
+Author: Chaolin Zhang <zhangc@okito.rockefeller.edu>
+Date:   Tue Jun 12 09:19:22 2012 -0400
+
+    very minor change, aligned the usage information
+
+commit f7d3d0b82100c29de3f0dfc4aa023250713f2496
+Author: wuj <wuj@cshl.edu>
+Date:   Mon Jun 11 22:42:26 2012 -0400
+
+    monor changes
+
+commit 8f0bdcb00a0acda14f5e611368041f61aa455ff3
+Author: wuj <wuj@cshl.edu>
+Date:   Mon Jun 11 22:30:38 2012 -0400
+
+    v1.0.4, please see details in ChangeLog
+
+commit 4448f51e9c6458da6b21c5b491eba3cc356820ec
+Author: wuj <wuj@cshl.edu>
+Date:   Sun Jun 10 14:50:51 2012 -0400
+
+    version 1.0.3
+
+commit da0700bb4710da5f86855a92757bb6f41e58b31e
+Author: wuj <wuj@cshl.edu>
+Date:   Wed May 16 11:06:53 2012 -0400
+
+    	new file:   ChangeLog
+    	modified:   README
+    	modified:   jigsaw.cpp
+
+commit 8ad7c0314f3eeeec2134a7278f44c862e289826b
+Author: Chaolin Zhang <czhang@rockefeller.edu>
+Date:   Tue May 15 21:46:57 2012 -0400
+
+    small fix in README
+
+commit d1c178dadb0e71e364846247039418f65a2690ae
+Author: Chaolin Zhang <czhang@rockefeller.edu>
+Date:   Tue May 15 21:42:15 2012 -0400
+
+    removed some obsolete files
+
+commit cafeaa4ec959816aefb314ecde64b453927fbdd4
+Author: wuj <wuj@cshl.edu>
+Date:   Tue May 15 16:20:35 2012 -0400
+
+    The v1.0.0 release
+
+commit d94e44c3ed481090909604dd4e3f56cda4b46495
+Author: wuj <wuj@cshl.edu>
+Date:   Tue May 8 09:58:25 2012 -0400
+
+    	modified:   Makefile
+    	modified:   README
+    	new file:   bwa_files/ChangeLog
+    	new file:   bwa_files/NEWS
+    	new file:   bwa_files/bwa.1
+    	new file:   bwa_files/solid2fastq.pl
+    	modified:   common.mk
+    	modified:   cz/makefile
+    	modified:   jigsaw.cpp
+    	modified:   kent/makefile
+    	deleted:    ChangeLog
+    	deleted:    NEWS
+    	deleted:    bwa.1
+    	deleted:    solid2fastq.pl
+
+commit be1b0cbfd27a32ff9f042fece58b3a1447ef36f3
+Author: wuj <wuj@cshl.edu>
+Date:   Thu May 3 17:02:14 2012 -0400
+
+    OLego files for public, version on 2012.05.03
+
+commit 97f34f9c85308cd83754c5689b72196360ef9d61
+Author: Chaolin Zhang <zhangc@okito.rockefeller.edu>
+Date:   Mon Feb 27 23:05:50 2012 -0500
+
+    olego files for public
