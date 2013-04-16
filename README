@@ -192,7 +192,11 @@ Basic options:
 			    will specify the maximum total edit distance allowed for each alignment.
 			    A FLOAT number will specify the fraction of missing alignments given 2% 
 			    uniform base error rate. This parameter is the same as -n in BWA. [default: 
+<<<<<<< HEAD
 			    a FLOAT number 0.06 ]
+=======
+			    a FLOAT number 0.04 ]
+>>>>>>> cb5b042bc85f16e89cd1772ef2890b58468e7c31
     -w,--word-size	    The size of the seed used in junction search (INT) [ default: 14 ]. 
 			    The default seed size is recommended for reads >100 nt. For shorter
 			    reads, a smaller number can be used. e.g., 12 nt for 36 nt reads. The 
@@ -224,13 +228,20 @@ Advanced options:
     Option		    Description
     ======================  =================================================================================
     --non-single-anchor	    Disable single-anchor de-novo junction search. [ default: enabled ].
+<<<<<<< HEAD
     --allow-rep-anchor      Allow anchors with simple repetitive sequences. [ default: not allow ].
+=======
+>>>>>>> cb5b042bc85f16e89cd1772ef2890b58468e7c31
     --strand-mode	    Strand mode (INT). This value should be selected from 1, 2 or 3. For strand 
 			    specific RNA-seq data, please use 1 if the reads should be mapped to the FORWARD 
 			    strand of the RNA, use 2 if the reads should be mapped to the REVERSE strand. If 
 			    the library is not strand specific, please use 3 to allow mapping onto both 
 			    strands. [ default: 3 ]
+<<<<<<< HEAD
     --max-multi		    Maximum number of alignments reported for multiple mappers. [ default: 20 ]
+=======
+    --max-multi		    Maximum number of alignments reported for multiple mappers. [ default: 1000 ]
+>>>>>>> cb5b042bc85f16e89cd1772ef2890b58468e7c31
     --min-logistic-prob	    Minimum logistic probablity for an alignment, calculated with the splice sites
 			    motif and intron size, in the range of [0,1) [ default: 0.50]. A higher number
 			    means more stringent filter, we don't recommend using high value since more true
