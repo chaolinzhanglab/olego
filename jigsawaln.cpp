@@ -2267,7 +2267,7 @@ jigsaw_junction_t* _jigsaw_locate_junc_one_anchor (jigsaw_exon_t* exon, bwa_seq_
 
 //when a splice site annotation is provided,
 //return the number of junctions found
-int jigsaw_locate_junc_two_anchors_with_anno (jigsaw_exon_t *ue, jigsaw_exon_t *de, int64_t min_ue_end_t, int64_t max_ue_end_t, int n_backsearch, int gap_len, ubyte_t *seq, ubyte_t *ref_seq,  const ubyte_t *pacseq, const AlnParam *ap, const gap_opt_t *opt, list<jigsaw_junction_t*> *junctions)
+int jigsaw_locate_junc_two_anchors_with_anno (jigsaw_exon_t *ue, jigsaw_exon_t *de, int64_t min_ue_end_t, int64_t max_ue_end_t, int n_backsearch, uint32_t seq_len, int gap_len, ubyte_t *seq, ubyte_t *ref_seq,  const ubyte_t *pacseq, const AlnParam *ap, const gap_opt_t *opt, list<jigsaw_junction_t*> *junctions)
 
 {
 	ubyte_t *gap_seq = seq + ue->end_q - n_backsearch + 1;
@@ -2303,6 +2303,9 @@ int jigsaw_locate_junc_two_anchors_with_anno (jigsaw_exon_t *ue, jigsaw_exon_t *
 	}
 
 	for (int64_t ue_end_t = min_ue_end_t; ue_end_t <= max_ue_end_t; ++ue_end_t) {
+		//remove positions which are too close to the boundary 
+                int breakpoint_pos_q_tmp = ue->end_q - n_backsearch + ue_end_t - min_ue_end_t;
+                if(breakpoint_pos_q_tmp +1 < opt->known_junc_min_anchor || (int (seq_len) - breakpoint_pos_q_tmp) < opt->known_junc_min_anchor ) continue;
 	       int64_t de_start_t = (de->start_t + n_backsearch) - (gap_len - (ue_end_t - min_ue_end_t));
 	       for (uint32_t sense_strand = 0; sense_strand < 2; ++sense_strand) {
 		   if( (! (opt->strand_mode & STRAND_MODE_REVERSE) ) && ( sense_strand != ue->strand )  ) continue;
@@ -2547,7 +2550,7 @@ int jigsaw_locate_junc_two_anchors_denovo (jigsaw_exon_t *ue, jigsaw_exon_t *de,
 } 
 
 
-int jigsaw_locate_junc_two_anchors_inner_exon_with_anno (jigsaw_exon_t *ue, jigsaw_exon_t *de, int64_t min_ue_end_t, int64_t max_ue_end_t, int n_backsearch, ubyte_t *seq, const ubyte_t *pacseq,const ubyte_t *ntpac, int64_t l_pac, bwt_t *const bwt[2], const int *g_log_n, const gap_opt_t *opt, list<jigsaw_junction_t*> *junctions, list<jigsaw_exon_t*> *exons)
+int jigsaw_locate_junc_two_anchors_inner_exon_with_anno (jigsaw_exon_t *ue, jigsaw_exon_t *de, int64_t min_ue_end_t, int64_t max_ue_end_t, int n_backsearch,uint32_t seq_len,  ubyte_t *seq, const ubyte_t *pacseq,const ubyte_t *ntpac, int64_t l_pac, bwt_t *const bwt[2], const int *g_log_n, const gap_opt_t *opt, list<jigsaw_junction_t*> *junctions, list<jigsaw_exon_t*> *exons)
 {
     ubyte_t *query_seq = seq; 
     int64_t ue_end_q, de_start_q, ue_end_t, de_start_t, me_start_t, me_end_t;
@@ -2585,6 +2588,9 @@ int jigsaw_locate_junc_two_anchors_inner_exon_with_anno (jigsaw_exon_t *ue, jigs
     list< pair<int64_t, int64_t> > ds_sites;
 	
     for (ue_end_t = min_ue_end_t; ue_end_t <= ue->end_t; ue_end_t++ ){
+	//skip if the upstream pos is too close to the read start
+	int breakpoint_pos_q_tmp = ue->end_q - n_backsearch + ue_end_t - min_ue_end_t;
+	if(breakpoint_pos_q_tmp +1 < opt->known_junc_min_anchor ) continue;
 	for (uint32_t sense_strand = 0; sense_strand < 2; ++sense_strand) {
 	    
 	    if( (! (opt->strand_mode & STRAND_MODE_REVERSE) ) && ( sense_strand != ue->strand ) ) continue;
@@ -2609,6 +2615,9 @@ int jigsaw_locate_junc_two_anchors_inner_exon_with_anno (jigsaw_exon_t *ue, jigs
     
     //do the same for the downstream
     for(de_start_t = de->start_t + n_backsearch; de_start_t >= de->start_t; de_start_t--){
+	//skip when the pos is too close to the end of the read
+	int breakpoint_pos_q_tmp = de->start_q + de_start_t -de->start_t;
+	if ( (int (seq_len) - breakpoint_pos_q_tmp) < opt->known_junc_min_anchor ) continue;
 	for (uint32_t sense_strand = 0; sense_strand < 2; ++sense_strand) {
 
 	    if( (! (opt->strand_mode & STRAND_MODE_REVERSE) ) && ( sense_strand != de->strand ) ) continue;
@@ -2741,7 +2750,7 @@ int jigsaw_locate_junc_two_anchors_inner_exon_with_anno (jigsaw_exon_t *ue, jigs
 
 //this is to find small exons between these two anchors.
 //TODO: modify this to output multi junctions later
-int jigsaw_locate_junc_two_anchors_inner_exon_denovo(jigsaw_exon_t *ue, jigsaw_exon_t *de, int64_t min_ue_end_t, int64_t max_ue_end_t, int n_backsearch, ubyte_t *seq, const ubyte_t *pacseq,const ubyte_t *ntpac, int64_t l_pac, bwt_t *const bwt[2], const int *g_log_n, const gap_opt_t *opt, list<jigsaw_junction_t*> *junctions, list<jigsaw_exon_t*> *exons)
+int jigsaw_locate_junc_two_anchors_inner_exon_denovo(jigsaw_exon_t *ue, jigsaw_exon_t *de, int64_t min_ue_end_t, int64_t max_ue_end_t, int n_backsearch, uint32_t seq_len, ubyte_t *seq, const ubyte_t *pacseq,const ubyte_t *ntpac, int64_t l_pac, bwt_t *const bwt[2], const int *g_log_n, const gap_opt_t *opt, list<jigsaw_junction_t*> *junctions, list<jigsaw_exon_t*> *exons)
 {
     int num_me_found_denovo = 0;
     ubyte_t *query_seq = seq;
@@ -2768,6 +2777,9 @@ int jigsaw_locate_junc_two_anchors_inner_exon_denovo(jigsaw_exon_t *ue, jigsaw_e
 
     int64_t ue_end_q, de_start_q, ue_end_t, de_start_t;
     for (ue_end_t = min_ue_end_t, ue_end_q = ue->end_q - n_backsearch; ue_end_t <= ue->end_t; ue_end_t++, ue_end_q++ )	{
+	//skip if the upstream pos is too close to the read start
+	int breakpoint_pos_q_tmp = ue->end_q - n_backsearch + ue_end_t - min_ue_end_t;
+	if(breakpoint_pos_q_tmp +1 < opt->min_anchor ) continue;
 	for (uint32_t sense_strand = 0; sense_strand < 2; ++sense_strand) {
 	    
 	    if( (! (opt->strand_mode & STRAND_MODE_REVERSE) ) && ( sense_strand != ue->strand ) ) continue;
@@ -2795,6 +2807,9 @@ int jigsaw_locate_junc_two_anchors_inner_exon_denovo(jigsaw_exon_t *ue, jigsaw_e
 		uint32_t ds_type = sense_strand ? SPLICE_DONOR : SPLICE_ACCEPTOR;
 		for(de_start_t = de->start_t + n_backsearch, de_start_q = de->start_q + n_backsearch; de_start_t >= de->start_t; de_start_t--, de_start_q--)	{
 		     if(de_start_t - ue_end_t < 2*opt->min_intron_size + opt->min_exon_size ) continue;
+			//skip when the pos is too close to the end of the read
+		     breakpoint_pos_q_tmp = de->start_q + de_start_t -de->start_t;
+		     if ( (int (seq_len) - breakpoint_pos_q_tmp) < opt->min_anchor ) continue;
 		     int64_t length = de_start_q - ue_end_q -1;
 		     if (length < opt->min_exon_size) continue;
 			splice_site_flag = 0;
@@ -2997,7 +3012,7 @@ void jigsaw_locate_junc_two_anchors (jigsaw_exon_t *ue, jigsaw_exon_t *de,
 	
 	if(opt->splice_site_map)// if junction database is provided, check it first
 	{
-	    num_junc_found_in_anno = jigsaw_locate_junc_two_anchors_with_anno(ue, de, min_ue_end_t, max_ue_end_t, n_backsearch, gap_len, seq, ref_seq, pacseq, &ap, opt, junctions);
+	    num_junc_found_in_anno = jigsaw_locate_junc_two_anchors_with_anno(ue, de, min_ue_end_t, max_ue_end_t, n_backsearch, seq_len, gap_len, seq, ref_seq, pacseq, &ap, opt, junctions);
 	    //if(opt->non_denovo_search) {free(ref_seq); return;}
 	    //stop here if both splice_site_map and non_denovo_search
 
@@ -3016,10 +3031,10 @@ void jigsaw_locate_junc_two_anchors (jigsaw_exon_t *ue, jigsaw_exon_t *de,
 	int num_me_found_in_anno = 0, num_me_found_denovo = 0;	
 	if (de->start_t - 1 - ue->end_t > 2 * opt->max_intron_size + opt->min_anchor) return;
 	 if(opt->splice_site_map) {
-	     num_me_found_in_anno = jigsaw_locate_junc_two_anchors_inner_exon_with_anno(ue, de, min_ue_end_t, max_ue_end_t, n_backsearch, seq, pacseq, ntpac, l_pac,  bwt, g_log_n, opt, junctions, exons);
+	     num_me_found_in_anno = jigsaw_locate_junc_two_anchors_inner_exon_with_anno(ue, de, min_ue_end_t, max_ue_end_t, n_backsearch, seq_len, seq, pacseq, ntpac, l_pac,  bwt, g_log_n, opt, junctions, exons);
 	 }
 	 if (opt->non_denovo_search == 0){
-	     num_me_found_denovo = jigsaw_locate_junc_two_anchors_inner_exon_denovo(ue, de, min_ue_end_t, max_ue_end_t, n_backsearch, seq, pacseq, ntpac, l_pac,  bwt, g_log_n, opt, junctions, exons);
+	     num_me_found_denovo = jigsaw_locate_junc_two_anchors_inner_exon_denovo(ue, de, min_ue_end_t, max_ue_end_t, n_backsearch, seq_len, seq, pacseq, ntpac, l_pac,  bwt, g_log_n, opt, junctions, exons);
 	 }
       }
 }
