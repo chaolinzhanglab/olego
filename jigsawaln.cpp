@@ -36,7 +36,8 @@ gap_opt_t *gap_init_opt()
 	o = (gap_opt_t*)calloc(1, sizeof(gap_opt_t));
 	/* IMPORTANT: s_mm*10 should be about the average base error
 	   rate. Voilating this requirement will break pairing! */
-	o->word_size = 14;
+	o->word_size = 15;
+	o->word_max_overlap = 1;
 	o->max_word_diff = 0;
 	o->max_word_occ =  -1 ; // will reset this in jigsaw.cpp
 	o->min_anchor = 8;
@@ -714,15 +715,15 @@ void jigsaw_refine_exon_aln_core (jigsaw_exon_t *exon, bwa_seq_t *seq,
 		//fprintf (stderr, "exon_id=%d, start_t1=%d, start_q1=%d, start_t2=%d, start_q2=%d\n", exon->exon_id, (*prev)->pos_t, (*prev)->pos_q, (*next)->pos_t, (*next)->pos_q);
 
 		//TODO: double check if there are bugs in the following lines in rare cases
-		if (ref_len == 0 && len == 0) continue;
-		else if (ref_len <= 0) {
+		if (ref_len <= 0 && len <= 0 && len == ref_len ) continue;
+		else if (ref_len <= 0 && len > ref_len ) {
 			//no nucleotide in reference
 			p->n_gapo_t += 1; p->n_gape_t += (len - ref_len - 1);
 			continue;
 		}
-		else if (len == 0) {
+		else if (len <= 0 && ref_len > len) {
 			//no nucleotide in query
-			p->n_gapo_q += 1; p->n_gape_q += (ref_len - 1);
+			p->n_gapo_q += 1; p->n_gape_q += (ref_len - len - 1);
 			continue;
 		}
 
@@ -3822,7 +3823,7 @@ void jigsaw_aln_one_spliced (bwt_t *const bwt[2], bwa_seq_t *seq, const int *g_l
 	//the size of the query sequence is too small; do nothing
 
 	/*get all words in the query sequence*/
-	jigsaw_set_read_words (seq, opt->word_size, opt->mode & BWA_MODE_COMPREAD);
+	jigsaw_set_read_words (seq, opt->word_size, opt->word_max_overlap,  opt->mode & BWA_MODE_COMPREAD);
 
 	//fprintf (stderr, "collect words\n");
 

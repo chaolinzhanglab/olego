@@ -19,7 +19,7 @@ extern "C" {
 	void seq_reverse(int len, ubyte_t *seq, int is_comp);
 	//static int bwa_trim_read(int trim_qual, bwa_seq_t *p);
 
-	void jigsaw_set_read_words (bwa_seq_t *p, int word_size, int is_comp);
+	void jigsaw_set_read_words (bwa_seq_t *p, int word_size, int word_max_overlap,  int is_comp);
 	//static void jigsaw_free_read_seq_one (bwa_seq_t *p);
 	void jigsaw_free_read_seq(int n_seqs, bwa_seq_t *seqs);
 
