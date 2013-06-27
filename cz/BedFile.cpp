@@ -12,17 +12,18 @@
 #include <fstream>
 #include <sstream>
 #include <iostream>
-
+#include <assert.h>
+#include <stdlib.h>
 
 //#include <boost/algorithm/string.hpp>
 //#include <boost/algorithm/string/join.hpp>
 
-extern "C" {
+//extern "C" {
 //jksrc header
-#include "common.h"
-#include "sqlNum.h"
+//#include "common.h"
+//#include "sqlNum.h"
 //#include "utils.h"
-}
+//}
 
 //my own header
 #include "utils.h"
@@ -56,9 +57,19 @@ BedLine::BedLine (const char *line)
 {
 	//vector <string> cols;
 	//split (cols, line, is_any_of ("\t "));
-	char *cols[15];
+	char cols[15][1024];
 
-	colNum = chopByWhite(const_cast <char *>(line), cols, 15);
+	//colNum = chopByWhite(const_cast <char *>(line), cols, 15);
+	istringstream ss(line);
+	string s;
+	int ii = 0;
+	for( ;ii<15; ii++ ) {
+		if(getline(ss, s, '\t')) {
+			sscanf ( s.c_str(), "%s", cols[ii] );
+		}
+		else break;
+	}
+	colNum = ii;
 
 	if (colNum < 3)
 	{
@@ -67,15 +78,15 @@ BedLine::BedLine (const char *line)
 	}
 
 	chrom = cols[0];
-	chromStart = sqlUnsigned(cols[1]);
-	chromEnd = sqlUnsigned(cols[2]) - 1;
+	chromStart = atoi(cols[1]);
+	chromEnd = atoi(cols[2]) - 1;
 	if (colNum > 3)
 		name = cols[3];
 	else
 		return;
 
 	if (colNum > 4)
-		score = sqlFloat (cols[4]);
+		score = atof (cols[4]);
 	else
 		return;
 
@@ -87,8 +98,8 @@ BedLine::BedLine (const char *line)
 	if (colNum > 6)
 	{
 		assert (colNum > 7);
-		thickStart = sqlUnsigned (cols[6]);
-		thickEnd = sqlUnsigned (cols[7]) - 1;
+		thickStart = atoi (cols[6]);
+		thickEnd = atoi (cols[7]) - 1;
 	}
 	else
 		return;
@@ -100,7 +111,7 @@ BedLine::BedLine (const char *line)
 
 	if (colNum > 9)
 	{
-		blockCount = sqlUnsigned (cols[9]);
+		blockCount = atoi (cols[9]);
 		assert (blockCount > 0);
 	}
 	else
@@ -113,22 +124,38 @@ BedLine::BedLine (const char *line)
 	{
 			assert (colNum > 11);
 			//vector <string> v;
-			char* v[1024];
-			size_t bCount = chopByChar (cols[10], ',', v, 1024);
+			string v[1024];
+			ss.str( cols[10] );
+			for( ii=0 ;ii<1024; ii++ ) {
+				if(getline(ss, s, ',')) {
+					v[ii] = s;
+				}
+				else break;
+			}
+			//size_t bCount = chopByChar (cols[10], ',', v, 1024);
+			size_t bCount = ii;
 			assert (bCount == blockCount);
 
 			for (size_t i = 0; i < blockCount; i++)
-				blockSizes.push_back (sqlUnsigned(v[i]));
+				blockSizes.push_back (atoi(v[i].c_str() ));
 
 			//split (v, cols[10], is_any_of (","));
 			//blockSizes.resize(v.size());
 			//transform (v.begin(), v.end (), blockSizes.begin(), string2int);
 			
-			bCount = chopByChar (cols[11], ',', v, 1024);
+			//bCount = chopByChar (cols[11], ',', v, 1024);
+			ss.str( cols[11]);
+			for( ii=0 ;ii<1024; ii++ ) {
+				if(getline(ss, s, ',')) {
+					 v[ii] = s;
+				}
+				else break;
+			}
+			bCount = ii;
 			assert (bCount == blockCount);
 
 			for (size_t i = 0; i < blockCount; i++)
-				blockStarts.push_back (sqlUnsigned(v[i]));
+				blockStarts.push_back (atoi(v[i].c_str() ));
 
 			//split (v, cols[11], is_any_of (","));
 			//blockStarts.resize(v.size());
