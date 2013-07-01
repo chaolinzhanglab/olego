@@ -685,8 +685,9 @@ void jigsaw_refine_exon_aln_core (jigsaw_exon_t *exon, bwa_seq_t *seq,
 
 	AlnParam ap = aln_param_bwa;
 	//TODO: need more sophisticated rules; the bound is too loose here
-	ap.band_width = band_width;
-
+	ap.band_width = band_width>1 ? band_width: 1;
+	//TODO, band_width > 1 for now, avoid crashes in aln_global_core
+	
 	//if (strcmp (seq->name, "HWI-ST155_05162111902026#0") == 0)
 	//{
 	//	fprintf (stderr, "found\n");
@@ -1223,7 +1224,7 @@ int jigsaw_locate_junc_one_anchor_with_anno_downstream(jigsaw_exon_t *exon, bwa_
     //analog to the two_anchor search
     AlnParam ap = aln_param_bwa;
     //ap.band_width = opt->max_diff;
-    ap.band_width = local_max_diff;
+    ap.band_width = local_max_diff >1 ? local_max_diff: 1;
   
     int gap_start_q = exon->end_q - n_backsearch +1;
     int gap_len = seq->len - gap_start_q ;
@@ -1570,7 +1571,7 @@ int jigsaw_locate_junc_one_anchor_with_anno_upstream(jigsaw_exon_t *exon, bwa_se
      //analog to the two_anchor search
     AlnParam ap = aln_param_bwa;
     //ap.band_width = opt->max_diff;
-    ap.band_width = local_max_diff;
+    ap.band_width = local_max_diff > 1 ? local_max_diff : 1;
     
     //int gap_start_q = 0; //gap starts from beginning of the read
     int gap_len = exon->start_q + n_backsearch + 1;
@@ -2561,7 +2562,7 @@ int jigsaw_locate_junc_two_anchors_inner_exon_with_anno (jigsaw_exon_t *ue, jigs
     AlnParam ap = aln_param_bwa;
     int local_max_diff = (int) opt->max_diff;
     if(local_max_diff >2 ) local_max_diff = 2;
-    ap.band_width = local_max_diff;
+    ap.band_width = local_max_diff >1 ? local_max_diff: 1;
 
 	uint32_t *ue_adjust_diff =new uint32_t[ n_backsearch +1 ];
 	int diff_track = 0;
@@ -3000,6 +3001,7 @@ void jigsaw_locate_junc_two_anchors (jigsaw_exon_t *ue, jigsaw_exon_t *de,
 	AlnParam ap = aln_param_bwa;
 	//TODO: need more sophisticated rules; the bound is too loose here
 	ap.band_width =  int (opt->max_diff );
+	if (ap.band_width <1) ap.band_width = 1;
 	if( (!opt->splice_site_map) && ap.band_width>2) ap.band_width = 2;
 
 	int64_t min_ue_end_t = ue->end_t - n_backsearch;
@@ -3636,7 +3638,7 @@ uint32_t *exonic_aln2cigar32(const jigsaw_spliced_aln_t *aln, ubyte_t *seq,
 	int max_cigar, _n_cigar = 0, n_exon_cigar;
 	uint32_t *cigar, *exon_cigar;
 	AlnParam ap = aln_param_bwa;
-	ap.band_width = band_width; //override band width
+	ap.band_width = band_width > 1? band_width: 1; //override band width
 	max_cigar = *n_cigar = 1;
 	cigar = (uint32_t*)malloc(*n_cigar * sizeof (uint32_t));
 	int len_t, len_q, l, path_len;
@@ -3688,7 +3690,7 @@ uint32_t *spliced_aln2cigar32(const jigsaw_spliced_aln_t *aln, ubyte_t *seq,
 	//unsigned char last_type;
 
 	AlnParam ap = aln_param_bwa;
-	ap.band_width = band_width; //override band width
+	ap.band_width = band_width > 1 ? band_width : 1 ; //override band width
 
 	jigsaw_junction_t *p, *q;
 	int n_junctions = aln->junctions->size ();
