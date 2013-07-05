@@ -24,6 +24,7 @@ Versions
 
 v1.1.2 ( 7-1-2013 )
 ---------------------
+* Sensitivity improved in small exons and single anchor search.by allowing mismatch.
 * Allows overlapping seeds to improve speed and seeding flexibility.
 * Increase default seed size to 15 (max 1 nt overlapping ) to keep both senstivity and speed.
 * A bug fixed (crashes when using -M 0 )
