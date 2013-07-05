@@ -22,6 +22,12 @@ Wu,J., Anczukow,O., Krainer,A.R., Zhang,M.Q. , Zhang,C. , 2013. OLego: Fast 
 Versions
 ======================
 
+v1.1.2 ( 7-1-2013 )
+---------------------
+* Allows overlapping seeds to improve speed and seeding flexibility.
+* Increase default seed size to 15 (max 1 nt overlapping ) to keep both senstivity and speed.
+* A bug fixed (crashes when using -M 0 )
+
 v1.1.1 ( 4-14-2013 )
 ---------------------
 * Improved speed by filtering simple repetitive anchors.
@@ -223,6 +229,7 @@ Advanced options:
     ======================  =================================================================================
     Option		    Description
     ======================  =================================================================================
+    --word-max-overlap      Max # of overlaps between seeds in the seeding step.[ default: 1 ]
     --non-single-anchor	    Disable single-anchor de-novo junction search. [ default: enabled ].
     --allow-rep-anchor      Allow anchors with simple repetitive sequences. [ default: not allow ].
     --strand-mode	    Strand mode (INT). This value should be selected from 1, 2 or 3. For strand 

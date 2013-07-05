@@ -182,6 +182,7 @@ void jigsaw_collect_anchor_hits (bwt_t *const bwt[2], jigsaw_anchor_seq_t *ancho
 	
 	//local_opt.max_diff = opt->max_word_diff;
 	local_opt.max_diff = 0;//do not allow mismatch in single anchor search for now
+	if( anchor_seq ->len >=18 && opt->max_diff >1) local_opt.max_diff = 1; // allow mismatch when the anchor is long
 	//TODO: allow mismatch later, and set it as a parameter.  
 	local_opt.max_gapo = local_opt.max_gape = 0;
 	
