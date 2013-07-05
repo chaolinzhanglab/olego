@@ -13,7 +13,7 @@ What is OLego?
 
 OLego is a program specifically designed for de novo spliced mapping of mRNA-seq reads. OLego adopts a seed-and-extend scheme, and does not rely on a separate external mapper. It achieves high sensitivity of junction detection by strategic searches with very small seeds (12-14 nt), efficiently mapped using Burrows-Wheeler transform (BWT) and FM-index. This also makes it particularly sensitive for discovering small exons. It is implemented in C++ with full support of multiple threading, to allow for fast processing of large-scale data.
 
-OLego is an open source code project and released under GPLv3. The implementation of OLego relies heavily on BWA (version 0.5.9rc1, http://bio-bwa.sourceforge.net/).  It also uses some source code from the Jim Kent source code tree (http://genome.ucsc.edu/admin/git.html). 
+OLego is an open source code project and released under GPLv3. The implementation of OLego relies heavily on BWA (version 0.5.9rc1, http://bio-bwa.sourceforge.net/).  
 
 Citation
 ======================
