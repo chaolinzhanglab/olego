@@ -83,6 +83,7 @@ int main (int argc, char *argv[])
 			{"non-single-anchor",	no_argument,		0, 0},
 			{"allow-rep-anchor",   no_argument,            0, 0},
 			{"strand-mode",         required_argument,      0, 0},
+			{"word-max-overlap",	required_argument,	0, 0},
 			{"max-multi",           required_argument,      0, 0},
 			{"min-logistic-prob",         required_argument,      0, 0},
 			{"max-overhang",    required_argument,  0, 0},
@@ -198,6 +199,9 @@ int main (int argc, char *argv[])
 			else if (strcmp (long_options[option_index].name, "non-single-anchor") == 0) {
 				opt->single_anchor_search = 0;
 			}
+			else if (strcmp (long_options[option_index].name, "word-max-overlap") ==0 ) {
+				opt->word_max_overlap = atoi (optarg);
+			}
 			else if (strcmp (long_options[option_index].name, "allow-rep-anchor") == 0) {
 				opt->allow_rep_anchor = 1;
 			}
@@ -254,6 +258,7 @@ int main (int argc, char *argv[])
 		fprintf(stderr, " -v,--verbose                 Verbose mode\n");
 
 		fprintf(stderr, "\n[advanced options]\n");
+		fprintf(stderr, " --word-max-overlap    INT    Max # of overlaps between seeds in the seeding step. [%d] \n",opt->word_max_overlap ) ;
 		fprintf(stderr, " --non-single-anchor          Disable single-anchor de novo junction search \n");
 		fprintf(stderr, " --allow-rep-anchor           Allow anchors with simple repetitive sequences \n");
 		fprintf(stderr, " --strand-mode         INT    Strand searching mode, 1:forward, 2: reverse, 3 both. [%d]\n", opt->strand_mode);

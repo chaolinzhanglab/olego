@@ -192,11 +192,11 @@ static bwa_seq_t *bwa_read_bam(bwa_seqio_t *bs, int n_needed, int *n, int is_com
  * is_comp indicate whether the reverse word should be complemented
  */
 
-void jigsaw_set_read_words (bwa_seq_t *p, int word_size, int is_comp)
+void jigsaw_set_read_words (bwa_seq_t *p, int word_size, int word_max_overlap, int is_comp)
 {
 	int i, j;
 	p->word_size = word_size;
-	p->n_words = (int) (p->len / word_size);
+	p->n_words = (int) (p->len - word_max_overlap )/ (word_size - word_max_overlap);
 
  	p->words = (jigsaw_word_t*)calloc(p->n_words, sizeof(jigsaw_word_t));
 

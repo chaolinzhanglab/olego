@@ -2,10 +2,6 @@ OLego -- short or long RNA-seq read mapping to discover exon junction
 
 Jie Wu (wuj@cshl.edu), Chaolin Zhang (cz2294@columbia.edu)
 
-Updated on Mar. 31st, 2013
-
-We are updating the manual frequently, so please check regularly for updates! 
-
 Please find the most recent documentation at http://zhanglab.c2b2.columbia.edu/index.php/OLego_Documentation
 
 What is OLego?
@@ -13,7 +9,7 @@ What is OLego?
 
 OLego is a program specifically designed for de novo spliced mapping of mRNA-seq reads. OLego adopts a seed-and-extend scheme, and does not rely on a separate external mapper. It achieves high sensitivity of junction detection by strategic searches with very small seeds (12-14 nt), efficiently mapped using Burrows-Wheeler transform (BWT) and FM-index. This also makes it particularly sensitive for discovering small exons. It is implemented in C++ with full support of multiple threading, to allow for fast processing of large-scale data.
 
-OLego is an open source code project and released under GPLv3. The implementation of OLego relies heavily on BWA (version 0.5.9rc1, http://bio-bwa.sourceforge.net/).  It also uses some source code from the Jim Kent source code tree (http://genome.ucsc.edu/admin/git.html). 
+OLego is an open source code project and released under GPLv3. The implementation of OLego relies heavily on BWA (version 0.5.9rc1, http://bio-bwa.sourceforge.net/).  
 
 Citation
 ======================
@@ -21,6 +17,13 @@ Wu,J., Anczukow,O., Krainer,A.R., Zhang,M.Q. , Zhang,C. , 2013. OLego: Fast 
 
 Versions
 ======================
+
+v1.1.2 ( 7-1-2013 )
+---------------------
+* Sensitivity improved in small exons and single anchor search.by allowing mismatch.
+* Allows overlapping seeds to improve speed and seeding flexibility.
+* Increase default seed size to 15 (max 1 nt overlapping ) to keep both senstivity and speed.
+* A bug fixed (crashes when using -M 0 )
 
 v1.1.1 ( 4-14-2013 )
 ---------------------
@@ -72,6 +75,7 @@ v1.0.0 ( 05-15-2012 )
 
 * The initial Public release
 
+<<<<<<< HEAD
 
 Prerequisites
 ======================
@@ -496,3 +500,5 @@ Some example commands using pipe to save space::
     samtools view merge.sort.bam | sam2bed.pl -r - - | bed2junc.pl - merge.junc
     # this will extract all junctions from the bam output without generating sam and bed files.
 
+=======
+>>>>>>> 38c6b88d48f128d297aad031e3d0a6609c195198
