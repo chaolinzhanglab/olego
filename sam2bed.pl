@@ -197,7 +197,7 @@ sub samToBed
 	{
 		$CIGAR = $1;
 	}
-	elsif ($CIGAR =~/^(.*?)\d+S/)
+	elsif ($CIGAR =~/^(.*?)\d+S$/)
 	{
 		$CIGAR = $1;
 	}
