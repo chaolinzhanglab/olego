@@ -192,7 +192,18 @@ sub samToBed
 	my $QNAME = $sam->{"QNAME"};
 	my $SEQ = $sam->{"SEQ"};
 
-	if ($sam->{"CIGAR"}=~/[^\d+|M|N|I|D]/g)
+	#remove soft cliped nucleotides
+	if ($CIGAR =~/^\d+S(.*?)$/)
+	{
+		$CIGAR = $1;
+	}
+	elsif ($CIGAR =~/^(.*?)\d+S/)
+	{
+		$CIGAR = $1;
+	}
+
+	#deal with the rest
+	if ($CIGAR=~/[^\d+|M|N|I|D]/g)
 	{
 		Carp::croak "unexpected CIGAR string: $CIGAR in $QNAME: $SEQ\n";
 	}
