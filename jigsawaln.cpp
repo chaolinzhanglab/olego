@@ -1211,7 +1211,7 @@ void jigsaw_enum_splice_site_denovo (int64_t start, int64_t end, uint32_t sense_
 }
 */
 
-int jigsaw_locate_junc_one_anchor_with_anno_downstream(jigsaw_exon_t *exon, bwa_seq_t *seq, int64_t min_ue_end_t, int64_t max_ue_end_t, int n_backsearch, const ubyte_t *pacseq, const gap_opt_t *opt, list<jigsaw_junction_t*> *junctions, list<jigsaw_exon_t*> *exons)
+int jigsaw_locate_junc_one_anchor_with_anno_downstream(jigsaw_exon_t *exon, bwa_seq_t *seq, int64_t min_ue_end_t, int64_t max_ue_end_t, int n_backsearch,int64_t l_pac,  const ubyte_t *pacseq, const gap_opt_t *opt, list<jigsaw_junction_t*> *junctions, list<jigsaw_exon_t*> *exons)
 {
     int local_max_diff = (int) opt->max_diff;
     if(local_max_diff >2 ) local_max_diff = 2;
@@ -1267,6 +1267,8 @@ int jigsaw_locate_junc_one_anchor_with_anno_downstream(jigsaw_exon_t *exon, bwa_
 	      for(int partner_i = 0; partner_i < known_ss->n_partners; partner_i++ ){
 		      splice_site_t* partner_ss = known_ss->partners[partner_i];
 		      int64_t de_start_t = partner_ss->pos +1;
+		      if (de_start_t + seq->len - ue_end_q - 2 >= l_pac) continue;
+		      //avoid exceed reference boundary
 		      //start to do alignment near this site
 		      int ii=i;
 		      //put the other half into ref_seq
@@ -1615,6 +1617,8 @@ int jigsaw_locate_junc_one_anchor_with_anno_upstream(jigsaw_exon_t *exon, bwa_se
 		    for(int partner_i = 0; partner_i < known_ss->n_partners; partner_i++ ){
 			    splice_site_t* partner_ss = known_ss->partners[partner_i];
 			    int64_t ue_end_t = partner_ss->pos -1;
+			    if (ue_end_t - de_start_q  < 0 ) continue;
+			    // bug 140119, alignment out of reference boundary
 			    int ii=i;
 			    //put the other half into ref_seq
 			    for (k = ue_end_t; ii>=0; --ii, --k)
@@ -1902,7 +1906,7 @@ void jigsaw_locate_junc_one_anchor (jigsaw_exon_t* exon, bwa_seq_t *seq, int dir
 		//if a junction database is provided, search with it first
 		if(opt->splice_site_map)
 		{
-		    num_junc_found_in_anno = jigsaw_locate_junc_one_anchor_with_anno_downstream(exon, seq, min_ue_end_t, max_ue_end_t, n_backsearch, pacseq, opt, junctions, exons);
+		    num_junc_found_in_anno = jigsaw_locate_junc_one_anchor_with_anno_downstream(exon, seq, min_ue_end_t, max_ue_end_t, n_backsearch, l_pac, pacseq, opt, junctions, exons);
 		}
 		//continue the following denovo search
 
