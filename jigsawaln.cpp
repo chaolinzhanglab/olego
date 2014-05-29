@@ -1393,6 +1393,7 @@ int jigsaw_locate_junc_one_anchor_with_anno_downstream(jigsaw_exon_t *exon, bwa_
 
 int jigsaw_locate_junc_one_anchor_denovo_downstream(jigsaw_exon_t *exon, bwa_seq_t *seq, int64_t min_ue_end_t, int64_t max_ue_end_t, int n_backsearch, int64_t l_pac,const ubyte_t *pacseq, const ubyte_t *ntpac, bwt_t *const bwt[2], const int *g_log_n, const gap_opt_t *opt, list<jigsaw_junction_t*> *junctions, list<jigsaw_exon_t*> *exons)
 {
+	if (!  (seq->len - exon->end_q - 1 + opt->max_overhang >= opt->min_anchor && seq->len - exon->end_q - 1 < 2* seq->word_size) ) return 0;
     int num_junc_found_denovo = 0;
     ubyte_t *query_seq = exon->strand ? seq->rseq : seq->seq;
     jigsaw_exon_t *de = 0;
@@ -1737,6 +1738,7 @@ int jigsaw_locate_junc_one_anchor_with_anno_upstream(jigsaw_exon_t *exon, bwa_se
 
 int jigsaw_locate_junc_one_anchor_denovo_upstream(jigsaw_exon_t *exon, bwa_seq_t *seq, int64_t min_de_start_t, int64_t max_de_start_t, int n_backsearch, int64_t l_pac,const ubyte_t *pacseq, const ubyte_t *ntpac, bwt_t *const bwt[2], const int *g_log_n, const gap_opt_t *opt, list<jigsaw_junction_t*> *junctions, list<jigsaw_exon_t*> *exons)
 {
+	if (! (exon->start_q + opt->max_overhang >= opt->min_anchor && exon->start_q < 2 * seq->word_size)) return 0;
     int num_junc_found_denovo = 0;
     ubyte_t *query_seq = exon->strand ? seq->rseq : seq->seq;
     jigsaw_exon_t *ue = 0;
