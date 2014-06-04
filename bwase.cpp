@@ -576,7 +576,7 @@ int64_t pos_end_multi(const bwt_multi1_t *p, int len) // analogy to pos_end()
 		int64_t x = p->pos;
 		for (j = 0; j != p->n_cigar; ++j) {
 			int op = __cigar_op(p->cigar[j]);
-			if (op == 0 || op == 2) x += __cigar_len(p->cigar[j]);
+			if (op == 0 || op == 2 || op == 4) x += __cigar_len(p->cigar[j]);
 		}
 		return x;
 	} else return p->pos + len;
@@ -675,12 +675,18 @@ void bwa_print_sam1(const bntseq_t *bns, bwa_seq_t *p, const bwa_seq_t *mate, in
 			if (p->md) printf("\tMD:Z:%s", p->md);
 			// print multiple hits
 			if (p->n_multi) {
-				printf("\tXA:Z:");
+				bool header_printed = 0;
 				for (i = 0; i < p->n_multi; ++i) {
 					bwt_multi1_t *q = p->multi + i;
-					int k;
 					j = pos_end_multi(q, p->len) - q->pos;
 					nn = bns_coor_pac2real(bns, q->pos, j, &seqid);
+					if(pos_end_multi(q, p->len) - bns->anns[seqid].offset > bns->anns[seqid].len) continue; //the alignment bridges adjacent sequences (chroms)
+//TODO: need to avoid this at the first place in the junction discovery step, but this should be rare for mm or human
+					if (! header_printed) {
+						header_printed = 1;
+						printf("\tXA:Z:");
+					}
+					int k;
 					printf("%s,%c%d,", bns->anns[seqid].name, q->strand? '-' : '+',
 						   (int)(q->pos - bns->anns[seqid].offset + 1));
 					if (q->cigar) {
