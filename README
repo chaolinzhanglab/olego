@@ -17,6 +17,10 @@ Wu,J., Anczukow,O., Krainer,A.R., Zhang,M.Q. , Zhang,C. , 2013. OLego: Fast 
 
 Versions
 ======================
+v1.1.5 ( 7-14-2014 )
+---------------------
+* Bugs fixed
+* Optmization for speed
 
 v1.1.2 ( 7-1-2013 )
 ---------------------
