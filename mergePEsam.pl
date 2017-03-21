@@ -34,11 +34,12 @@ if ( @ARGV != 3)
 {
     print STDERR "Merge sam format output from PE reads\n";
     print STDERR "Usage: $prog [options] <end1.sam> <end2.sam> <out.sam>\n\n";
-    print STDERR "	Please use --ss or --ns to specify the strategy of using strand information to filter read pairs. Also, you can use - to direct the output into STDOUT\n\n";
-    print STDERR "	-d			max distance between the two ends on genome. [$maxdist]\n";
-    print STDERR "	--ss, --same-strand	the two ends come from the same strand, instead of requring opposite strands by default \n";
-    print STDERR "	--ns, --no-strand	do not use strand information. \n";
-    print STDERR "	--nci, --no-check-input	do not check the input file . \n"; 
+	print STDERR "  gz files accepted for input; Also, you can use - to direct the output into STDOUT\n";
+    print STDERR "	Use --ss or --ns to specify the strategy of using strand information to filter read pairs.\n\n";
+    print STDERR "	-d                      max distance between the two ends on genome. [$maxdist]\n";
+    print STDERR "	--ss, --same-strand     the two ends come from the same strand, instead of requring opposite strands by default \n";
+    print STDERR "	--ns, --no-strand       do not use strand information. \n";
+    print STDERR "	--nci, --no-check-input do not check the input file . \n"; 
     print STDERR "	-v			verbose\n";
     exit 1;
 }
@@ -47,8 +48,23 @@ if ( @ARGV != 3)
 my ($inSAMFile1,$inSAMFile2, $outFile) = @ARGV;
 my ($fin1,$fin2, $fout); 
 
-open ($fin1, "<$inSAMFile1") || Carp::croak "cannot open file $inSAMFile1 to read\n";
-open ($fin2, "<$inSAMFile2") || Carp::croak "cannot open file $inSAMFile2 to read\n";
+if ($inSAMFile1 =~/\.gz$/)
+{
+	open ($fin1, "gunzip -c $inSAMFile1 | ")||Carp::croak "cannot open file $inSAMFile1 to read\n";
+}
+else
+{
+	open ($fin1, "<$inSAMFile1") || Carp::croak "cannot open file $inSAMFile1 to read\n";
+}
+
+if ($inSAMFile2 =~/\.gz$/)
+{
+	open ($fin2, "gunzip -c $inSAMFile2 | ")||Carp::croak "cannot open file $inSAMFile2 to read\n";
+}
+else
+{
+	open ($fin2, "<$inSAMFile2") || Carp::croak "cannot open file $inSAMFile2 to read\n";
+}
 
 if($outFile ne "-")
 {
@@ -210,7 +226,7 @@ while (my $line1 = <$fin1>)
 	for(my $i=0; $i<@XAstrs; $i++)
 	{
 #	    XA:Z:chr4,+149621574,100M,0;chr2,+80678177,100M,0;
-	    if ($XAstrs[$i]=~/^(\S*?),([\+\-])(\d*?),(\w*?),(\d*?),([\+\-\.])$/)
+	    if ($XAstrs[$i]=~/^(\w*?),([\+\-])(\d*?),(\w*?),(\d*?),([\+\-\.])$/)
 	    {
 		push(@chr1, $1);
 		push(@strand1, $2);
@@ -232,7 +248,7 @@ while (my $line1 = <$fin1>)
 	  for(my $i=0; $i<@XAstrs; $i++)
 	  {
 #	    XA:Z:chr4,+149621574,100M,0;chr2,+80678177,100M,0;
-	      if ($XAstrs[$i]=~/^(\S*?),([\+\-])(\d*?),(\w*?),(\d*?),([\+\-\.])$/)
+	      if ($XAstrs[$i]=~/^(\w*?),([\+\-])(\d*?),(\w*?),(\d*?),([\+\-\.])$/)
 	      {
 		  push(@chr2, $1);
 		  push(@strand2, $2);
