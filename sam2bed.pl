@@ -197,7 +197,16 @@ sub samToBed
 	{
 		$CIGAR = $1;
 	}
-	elsif ($CIGAR =~/^(.*?)\d+S$/)
+	elsif ($CIGAR =~/^\d+H(.*?)$/)
+    {
+        $CIGAR = $1;
+    }
+	
+	if ($CIGAR =~/^(.*?)\d+S$/)
+	{
+		$CIGAR = $1;
+	}
+	elsif ($CIGAR =~/^(.*?)\d+H$/)
 	{
 		$CIGAR = $1;
 	}
