@@ -30,7 +30,7 @@
 #endif
 
 #ifndef PACKAGE_VERSION
-#define PACKAGE_VERSION "1.1.5"
+#define PACKAGE_VERSION "1.1.7"
 #endif
 
 using namespace std;

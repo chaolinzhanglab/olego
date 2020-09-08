@@ -12,10 +12,13 @@ use Getopt::Long;
 my $prog = basename ($0);
 my $separateBed = 0;
 my $printUniqOnly = 0;
+my $printPrimaryOnly = 0;
+
 my $verbose = 0;
 my $useRNAStrand = 0; # use the strand of the RNA instead of the read
 
 GetOptions (
+	"p|primary"=>\$printPrimaryOnly,
 	"u|uniq"=>\$printUniqOnly,
 	"r|use-RNA-strand"=>\$useRNAStrand,
 #	"s|separate-bed"=>\$separateBed, 
@@ -29,6 +32,7 @@ if (@ARGV != 2 && @ARGV != 3)
 	print STDERR " <out1.bed> [out2.bed]: specify both out1.bed and out2.bed to output results of PE data to separate BED files.\n";
 	print STDERR " You can also use - to specify STDIN for input or STDOUT for output\n\n";
 	print STDERR "options:\n";
+	print STDERR "-p,--primary:         print primary alignment only\n"; 
 	print STDERR "-u,--uniq:            print uniquely mapped reads only\n";
 	print STDERR "-r,--use-RNA-strand:  force to use the strand of the RNA based on the XS tag \n";
 	print STDERR "-v,--verbose:         verbose\n";
@@ -109,7 +113,21 @@ while (my $line = <$fin>)
 	my $uniq = 0;
 	$uniq = 1 if $sam->{"TAGS"}=~/XT:A:U/;
 	
-	if ($printUniqOnly == 0 || $uniq == 1)
+	my $primary = $flagInfo->{'primary_alignment'} ? 1 : 0;
+	
+	my $printRead = 1;
+
+	if ($printUniqOnly == 1 && $uniq == 0)	
+	{
+		$printRead = 0;
+	}
+	
+	if ($printPrimaryOnly == 1 && $primary == 0)
+	{
+		$printRead = 0;
+	}
+
+	if ($printRead)
 	{
 		if ($separateBed && $read1_or_2 == 2)
 		{
@@ -296,7 +314,8 @@ sub decodeSamFlag
 		mate_nomap=>$flags[8],				#1 means its mate is unmapped
 		query_strand=>$flags[7] == 0 ? '+' : '-',	#1 means the strand of this read is on the negative strand
 		mate_strand=>$flags[6] == 0 ? '+' : '-',	#1 means its mate is on the negative strand
-		read_1_or_2=> $flags[5] == 1 ? 1 : 2 		#1 means this is read1
+		read_1_or_2=> $flags[5] == 1 ? 1 : 2, 		#1 means this is read1
+		primary_alignment=> $flags[3] == 1 ? 0 : 1 # 1 means not a primary alignment
 	};
 	return $flagInfo;
 }	
