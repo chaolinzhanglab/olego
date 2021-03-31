@@ -28,7 +28,7 @@ if (@ARGV != 2 && @ARGV != 3)
 {
 	print STDERR "Convert OLego SAM format to BED format (for both paired-end and single-end data)\n";
 	print STDERR "Usage: $prog [options] <in.sam> <out1.bed> [out2.bed]\n";
-	print STDERR " <in.sam> : gzip compressed input file with .gz extension is allowed\n";
+	print STDERR " <in.sam> : compressed input file with .gz/.bz2 extension is allowed\n";
 	print STDERR " <out1.bed> [out2.bed]: specify both out1.bed and out2.bed to output results of PE data to separate BED files.\n";
 	print STDERR " You can also use - to specify STDIN for input or STDOUT for output\n\n";
 	print STDERR "options:\n";
@@ -60,6 +60,10 @@ else
 	if ($inSAMFile =~/\.gz$/)
 	{
 		open ($fin, "gunzip -c $inSAMFile | ") || Carp::croak "cannot open file $inSAMFile to read\n";
+	}
+	elsif ($inSAMFile =~/\.bz2$/)
+	{
+		open ($fin, "bunzip2 -c $inSAMFile | ") || Carp::croak "cannot open file $inSAMFile to read\n";
 	}
 	else
 	{
