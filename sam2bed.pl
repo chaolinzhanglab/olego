@@ -15,12 +15,14 @@ my $printUniqOnly = 0;
 my $printPrimaryOnly = 0;
 
 my $verbose = 0;
+my $reverseStrand = 0;
 my $useRNAStrand = 0; # use the strand of the RNA instead of the read
 
 GetOptions (
 	"p|primary"=>\$printPrimaryOnly,
 	"u|uniq"=>\$printUniqOnly,
 	"r|use-RNA-strand"=>\$useRNAStrand,
+	"reverse-strand"=>\$reverseStrand,
 #	"s|separate-bed"=>\$separateBed, 
 	"v|verbose"=>\$verbose);
 
@@ -32,12 +34,14 @@ if (@ARGV != 2 && @ARGV != 3)
 	print STDERR " <out1.bed> [out2.bed]: specify both out1.bed and out2.bed to output results of PE data to separate BED files.\n";
 	print STDERR " You can also use - to specify STDIN for input or STDOUT for output\n\n";
 	print STDERR "options:\n";
-	print STDERR "-p,--primary:         print primary alignment only\n"; 
-	print STDERR "-u,--uniq:            print uniquely mapped reads only\n";
-	print STDERR "-r,--use-RNA-strand:  force to use the strand of the RNA based on the XS tag \n";
-	print STDERR "-v,--verbose:         verbose\n";
+	print STDERR "-p,--primary       :  print primary alignment only\n"; 
+	print STDERR "-u,--uniq          :  print uniquely mapped reads only\n";
+	print STDERR "--reverse-strand   :  reverse strand\n";
+	print STDERR "-r,--use-RNA-strand:  force to use the strand of the RNA based on the XS tag (for junction reads)\n";
+	print STDERR "-v,--verbose       :  verbose\n";
 	exit (1);
 }
+
 
 my ($inSAMFile, $outBedFile) = @ARGV;
 my $outBedFile2 = "";
@@ -190,6 +194,19 @@ sub samToBed
 	
 	my $TAGS = "";
 	$TAGS = $sam->{"TAGS"} if $sam->{"TAGS"};
+
+	if ($reverseStrand)
+	{
+		if ($strand eq '+')
+		{
+			$strand = '-';
+		}
+		elsif ($strand eq '-')
+		{
+			$strand = '+';
+		}
+	}
+
 	if ($useRNAStrand)
 	{
 		if ($TAGS=~/XS\:\S*\:([\-\+\.])/)
