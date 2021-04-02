@@ -1,3 +1,171 @@
+commit be310f37e58a59490e7ea5bc50040cd077267feb
+Author: Jie Wu % Zhang <wuj@cshl.edu>
+Date:   Fri Jul 5 15:22:28 2013 +0000
+
+    minor edits in README
+
+commit fb13570d0d00e60bea86efe9741cb92c180a6c2e
+Author: Jie Wu % Zhang <wuj@cshl.edu>
+Date:   Fri Jul 5 15:20:12 2013 +0000
+
+    minor change in README
+
+commit 7a8ea38091c727f32486d162bc987614b6c26688
+Author: Jie Wu % Zhang <wuj@cshl.edu>
+Date:   Fri Jul 5 15:15:03 2013 +0000
+
+    allow mismatch when the query seq is long in single anchor and micro exon search
+    readme
+    version number
+
+commit ac68a89b2b13a267e2d78bd0f3e0aa018d264b82
+Author: Jie Wu % Zhang <wuj@cshl.edu>
+Date:   Mon Jul 1 12:17:20 2013 -0400
+
+    bug fixes (band_width >1)
+
+commit 516652f8f1c58d73adb94c53c0b69aab055cf91c
+Author: Jie Wu % Zhang <wuj@cshl.edu>
+Date:   Wed Jun 26 23:40:51 2013 -0400
+
+    removed kent src, rewrote BefFile.cpp
+
+commit bc65cea24701bd8e163cac9a9dc9c2c0ae897d9a
+Author: Jie Wu % Zhang <wuj@cshl.edu>
+Date:   Wed Jun 26 18:01:50 2013 -0400
+
+    implemented overlaping seeds
+    default -w 15 with --word-max-overlap 1
+
+commit 387795e3ed152e1f9389081aceef4549de5f94f5
+Author: Jie Wu % Zhang <wuj@cshl.edu>
+Date:   Mon Jun 24 17:46:28 2013 -0400
+
+    	renamed:    models/hg18.cfg -> models/hg.cfg
+    	renamed:    models/mm9.cfg -> models/mm.cfg
+
+commit 7f9327a2f53f0619b3d2ac50b2fe0d6b23c3f0e3
+Merge: 36cf804 047cd4f
+Author: Jie Wu % Zhang <jw3099@login4.titan>
+Date:   Mon Apr 22 17:17:17 2013 -0400
+
+    Merge branch 'master' of ssh://git.code.sf.net/p/ngs-olego/code
+
+commit 36cf804c39c0a055740d15a2f989715357bfc1c3
+Author: Jie Wu % Zhang <jw3099@login4.titan>
+Date:   Mon Apr 22 17:16:22 2013 -0400
+
+    improvments on anchor size for double anchor search
+
+commit 047cd4f0628b1eaa67baa9d6c055e1cc000c2bd1
+Author: Jie Wu % Zhang <jw3099@login3.titan>
+Date:   Sun Apr 14 10:42:38 2013 -0400
+
+    Updated Readme
+
+commit a29dd67f56b7b2d19c9f92b8d41fd0cc6b2efa6c
+Author: Jie Wu % Zhang <jw3099@b1a.c1.titan>
+Date:   Sun Apr 14 04:22:50 2013 +0000
+
+    change default of --max-multi and -M
+    version 1.1.1
+
+commit 751b25ecdc1ed023c8e794440d9ca854ab6c6167
+Author: Jie Wu % Zhang <jw3099@b1a.c3.titan>
+Date:   Fri Apr 12 21:21:17 2013 +0000
+
+    Speed improvment by filtering out some highly repetitive anchors by default, new option added "allow-rep-anchor"
+
+commit cbcb16c9d2a3128158c21a73c555a5589f70904f
+Author: Jie Wu <wuj@cshl.edu>
+Date:   Sun Mar 31 21:18:50 2013 -0500
+
+    VERSION 1.1.0, README updated
+
+commit b2d07a1d7a06d1915e5639f89215632b459c2067
+Author: Jie Wu % Zhang <jw3099@b1a.c0.titan>
+Date:   Sun Mar 31 04:54:52 2013 +0000
+
+    further fix for duplicate entries occurred on exonbody reads
+
+commit 7f6db82c29ea83eea4ede79e68436a47452a9cd6
+Author: Jie Wu <wuj@cshl.edu>
+Date:   Sat Mar 30 17:31:52 2013 -0500
+
+    minor fix on -W
+
+commit 3f25f8cc6650d4e4246ec53b976f244236ba52ce
+Author: Jie Wu <wuj@cshl.edu>
+Date:   Fri Mar 29 17:40:39 2013 -0500
+
+    fixed bug about duplicate alignment entries
+    fix a bug in sam2bed.pl
+
+commit 02edaef61a39f63379f461d496802abb777d72bf
+Author: Jie Wu <wuj@cshl.edu>
+Date:   Fri Mar 29 13:50:45 2013 -0500
+
+    opitmize option -W
+
+commit f7985783c75c2830c6c48db0522e04b13e187c05
+Author: Jie Wu % Zhang <jw3099@b1a.c2.titan>
+Date:   Sun Mar 24 16:46:13 2013 +0000
+
+    record the command and program version in PG
+    fix the bug for -e option
+
+commit 65bba660e6e2e6ad311a7fce1d84a0ebe150431c
+Author: Jie Wu % Zhang <jw3099@login2.titan>
+Date:   Tue Mar 5 15:00:29 2013 -0500
+
+    bug fixed for regression_model_gen, "chr"
+
+commit e769cec864489ff4b5110e9560919a7739fb1fe2
+Author: Chaolin Zhang %Zhang <cz2294@login3.titan>
+Date:   Mon Jan 14 23:15:51 2013 -0500
+
+    minor bug fix on in sam2bed; does not affect results
+
+commit 5265602b15fcf0ac25710b216d6b4c336da5bec5
+Author: Chaolin Zhang %Zhang <cz2294@login2.titan>
+Date:   Thu Jan 10 13:10:41 2013 -0500
+
+    Add support for gzip input file for sam2bed.pl
+
+commit 8268ae4661db699887ace7a5eaa0eb6216785bff
+Author: Chaolin Zhang %Zhang <cz2294@login3.titan>
+Date:   Tue Jan 8 11:04:37 2013 -0500
+
+    reorganized codes in sam2bed.pl
+
+commit 37482a66a2e4e5c2cf6f57f13bbf489f8650042e
+Author: wuj <wuj@cshl.edu>
+Date:   Thu Dec 13 18:39:15 2012 -0500
+
+    fixes
+
+commit ac3b25ac2434e470ec5c2a1482cbf249ef3fcccf
+Merge: 8b94500 6a2d2a4
+Author: Chaolin Zhang %Zhang <cz2294@b1a.c2.titan>
+Date:   Wed Dec 12 03:58:24 2012 +0000
+
+    Merge branch 'master' of ssh://zhangchaolin@git.code.sf.net/p/ngs-olego/code
+    
+    Conflicts:
+    	bed2junc.pl
+
+commit 8b945004bc621973bcdb74088c620acb4aa1c1fb
+Author: Chaolin Zhang %Zhang <cz2294@b1a.c1.titan>
+Date:   Wed Dec 12 03:51:20 2012 +0000
+
+    corrected the version number (1.0.8)
+
+commit 6a2d2a4e64294f4c0a7f90b523cf0951f62552f9
+Author: Jie Wu <wuj@cshl.edu>
+Date:   Tue Nov 20 16:56:09 2012 -0600
+
+    final edits for v1.0.8
+
 commit 9a547ccd8bf646450d809a1afe859b62844a9df2
 Author: Jie Wu <wuj@cshl.edu>
 Date:   Tue Nov 20 16:46:15 2012 -0600

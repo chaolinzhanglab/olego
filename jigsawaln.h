@@ -30,7 +30,7 @@
 #endif
 
 #ifndef PACKAGE_VERSION
-#define PACKAGE_VERSION "1.1.1"
+#define PACKAGE_VERSION "1.1.7"
 #endif
 
 using namespace std;
@@ -231,6 +231,7 @@ typedef struct __jigsaw_seq_t jigsaw_anchor_seq_t;
 
 typedef struct {
 	int word_size;
+	int word_max_overlap;
 	int max_word_diff;
 	int max_word_occ;
 	int max_intron_size, min_intron_size;

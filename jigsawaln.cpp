@@ -36,7 +36,8 @@ gap_opt_t *gap_init_opt()
 	o = (gap_opt_t*)calloc(1, sizeof(gap_opt_t));
 	/* IMPORTANT: s_mm*10 should be about the average base error
 	   rate. Voilating this requirement will break pairing! */
-	o->word_size = 14;
+	o->word_size = 15;
+	o->word_max_overlap = 1;
 	o->max_word_diff = 0;
 	o->max_word_occ =  -1 ; // will reset this in jigsaw.cpp
 	o->min_anchor = 8;
@@ -181,6 +182,7 @@ void jigsaw_collect_anchor_hits (bwt_t *const bwt[2], jigsaw_anchor_seq_t *ancho
 	
 	//local_opt.max_diff = opt->max_word_diff;
 	local_opt.max_diff = 0;//do not allow mismatch in single anchor search for now
+	if( anchor_seq ->len >=18 && opt->max_diff >1) local_opt.max_diff = 1; // allow mismatch when the anchor is long
 	//TODO: allow mismatch later, and set it as a parameter.  
 	local_opt.max_gapo = local_opt.max_gape = 0;
 	
@@ -684,8 +686,9 @@ void jigsaw_refine_exon_aln_core (jigsaw_exon_t *exon, bwa_seq_t *seq,
 
 	AlnParam ap = aln_param_bwa;
 	//TODO: need more sophisticated rules; the bound is too loose here
-	ap.band_width = band_width;
-
+	ap.band_width = band_width>1 ? band_width: 1;
+	//TODO, band_width > 1 for now, avoid crashes in aln_global_core
+	
 	//if (strcmp (seq->name, "HWI-ST155_05162111902026#0") == 0)
 	//{
 	//	fprintf (stderr, "found\n");
@@ -714,15 +717,15 @@ void jigsaw_refine_exon_aln_core (jigsaw_exon_t *exon, bwa_seq_t *seq,
 		//fprintf (stderr, "exon_id=%d, start_t1=%d, start_q1=%d, start_t2=%d, start_q2=%d\n", exon->exon_id, (*prev)->pos_t, (*prev)->pos_q, (*next)->pos_t, (*next)->pos_q);
 
 		//TODO: double check if there are bugs in the following lines in rare cases
-		if (ref_len == 0 && len == 0) continue;
-		else if (ref_len <= 0) {
+		if (ref_len <= 0 && len <= 0 && len == ref_len ) continue;
+		else if (ref_len <= 0 && len > ref_len ) {
 			//no nucleotide in reference
 			p->n_gapo_t += 1; p->n_gape_t += (len - ref_len - 1);
 			continue;
 		}
-		else if (len == 0) {
+		else if (len <= 0 && ref_len > len) {
 			//no nucleotide in query
-			p->n_gapo_q += 1; p->n_gape_q += (ref_len - 1);
+			p->n_gapo_q += 1; p->n_gape_q += (ref_len - len - 1);
 			continue;
 		}
 
@@ -1208,7 +1211,7 @@ void jigsaw_enum_splice_site_denovo (int64_t start, int64_t end, uint32_t sense_
 }
 */
 
-int jigsaw_locate_junc_one_anchor_with_anno_downstream(jigsaw_exon_t *exon, bwa_seq_t *seq, int64_t min_ue_end_t, int64_t max_ue_end_t, int n_backsearch, const ubyte_t *pacseq, const gap_opt_t *opt, list<jigsaw_junction_t*> *junctions, list<jigsaw_exon_t*> *exons)
+int jigsaw_locate_junc_one_anchor_with_anno_downstream(jigsaw_exon_t *exon, bwa_seq_t *seq, int64_t min_ue_end_t, int64_t max_ue_end_t, int n_backsearch,int64_t l_pac,  const ubyte_t *pacseq, const gap_opt_t *opt, list<jigsaw_junction_t*> *junctions, list<jigsaw_exon_t*> *exons)
 {
     int local_max_diff = (int) opt->max_diff;
     if(local_max_diff >2 ) local_max_diff = 2;
@@ -1222,7 +1225,7 @@ int jigsaw_locate_junc_one_anchor_with_anno_downstream(jigsaw_exon_t *exon, bwa_
     //analog to the two_anchor search
     AlnParam ap = aln_param_bwa;
     //ap.band_width = opt->max_diff;
-    ap.band_width = local_max_diff;
+    ap.band_width = local_max_diff >1 ? local_max_diff: 1;
   
     int gap_start_q = exon->end_q - n_backsearch +1;
     int gap_len = seq->len - gap_start_q ;
@@ -1264,6 +1267,8 @@ int jigsaw_locate_junc_one_anchor_with_anno_downstream(jigsaw_exon_t *exon, bwa_
 	      for(int partner_i = 0; partner_i < known_ss->n_partners; partner_i++ ){
 		      splice_site_t* partner_ss = known_ss->partners[partner_i];
 		      int64_t de_start_t = partner_ss->pos +1;
+		      if (de_start_t + seq->len - ue_end_q - 2 >= l_pac) continue;
+		      //avoid exceed reference boundary
 		      //start to do alignment near this site
 		      int ii=i;
 		      //put the other half into ref_seq
@@ -1388,6 +1393,7 @@ int jigsaw_locate_junc_one_anchor_with_anno_downstream(jigsaw_exon_t *exon, bwa_
 
 int jigsaw_locate_junc_one_anchor_denovo_downstream(jigsaw_exon_t *exon, bwa_seq_t *seq, int64_t min_ue_end_t, int64_t max_ue_end_t, int n_backsearch, int64_t l_pac,const ubyte_t *pacseq, const ubyte_t *ntpac, bwt_t *const bwt[2], const int *g_log_n, const gap_opt_t *opt, list<jigsaw_junction_t*> *junctions, list<jigsaw_exon_t*> *exons)
 {
+	if (!  (seq->len - exon->end_q - 1 + opt->max_overhang >= opt->min_anchor && seq->len - exon->end_q - 1 < 2* seq->word_size) ) return 0;
     int num_junc_found_denovo = 0;
     ubyte_t *query_seq = exon->strand ? seq->rseq : seq->seq;
     jigsaw_exon_t *de = 0;
@@ -1569,7 +1575,7 @@ int jigsaw_locate_junc_one_anchor_with_anno_upstream(jigsaw_exon_t *exon, bwa_se
      //analog to the two_anchor search
     AlnParam ap = aln_param_bwa;
     //ap.band_width = opt->max_diff;
-    ap.band_width = local_max_diff;
+    ap.band_width = local_max_diff > 1 ? local_max_diff : 1;
     
     //int gap_start_q = 0; //gap starts from beginning of the read
     int gap_len = exon->start_q + n_backsearch + 1;
@@ -1612,6 +1618,8 @@ int jigsaw_locate_junc_one_anchor_with_anno_upstream(jigsaw_exon_t *exon, bwa_se
 		    for(int partner_i = 0; partner_i < known_ss->n_partners; partner_i++ ){
 			    splice_site_t* partner_ss = known_ss->partners[partner_i];
 			    int64_t ue_end_t = partner_ss->pos -1;
+			    if (ue_end_t - de_start_q  < 0 ) continue;
+			    // bug 140119, alignment out of reference boundary
 			    int ii=i;
 			    //put the other half into ref_seq
 			    for (k = ue_end_t; ii>=0; --ii, --k)
@@ -1730,6 +1738,7 @@ int jigsaw_locate_junc_one_anchor_with_anno_upstream(jigsaw_exon_t *exon, bwa_se
 
 int jigsaw_locate_junc_one_anchor_denovo_upstream(jigsaw_exon_t *exon, bwa_seq_t *seq, int64_t min_de_start_t, int64_t max_de_start_t, int n_backsearch, int64_t l_pac,const ubyte_t *pacseq, const ubyte_t *ntpac, bwt_t *const bwt[2], const int *g_log_n, const gap_opt_t *opt, list<jigsaw_junction_t*> *junctions, list<jigsaw_exon_t*> *exons)
 {
+	if (! (exon->start_q + opt->max_overhang >= opt->min_anchor && exon->start_q < 2 * seq->word_size)) return 0;
     int num_junc_found_denovo = 0;
     ubyte_t *query_seq = exon->strand ? seq->rseq : seq->seq;
     jigsaw_exon_t *ue = 0;
@@ -1899,7 +1908,7 @@ void jigsaw_locate_junc_one_anchor (jigsaw_exon_t* exon, bwa_seq_t *seq, int dir
 		//if a junction database is provided, search with it first
 		if(opt->splice_site_map)
 		{
-		    num_junc_found_in_anno = jigsaw_locate_junc_one_anchor_with_anno_downstream(exon, seq, min_ue_end_t, max_ue_end_t, n_backsearch, pacseq, opt, junctions, exons);
+		    num_junc_found_in_anno = jigsaw_locate_junc_one_anchor_with_anno_downstream(exon, seq, min_ue_end_t, max_ue_end_t, n_backsearch, l_pac, pacseq, opt, junctions, exons);
 		}
 		//continue the following denovo search
 
@@ -2267,7 +2276,7 @@ jigsaw_junction_t* _jigsaw_locate_junc_one_anchor (jigsaw_exon_t* exon, bwa_seq_
 
 //when a splice site annotation is provided,
 //return the number of junctions found
-int jigsaw_locate_junc_two_anchors_with_anno (jigsaw_exon_t *ue, jigsaw_exon_t *de, int64_t min_ue_end_t, int64_t max_ue_end_t, int n_backsearch, int gap_len, ubyte_t *seq, ubyte_t *ref_seq,  const ubyte_t *pacseq, const AlnParam *ap, const gap_opt_t *opt, list<jigsaw_junction_t*> *junctions)
+int jigsaw_locate_junc_two_anchors_with_anno (jigsaw_exon_t *ue, jigsaw_exon_t *de, int64_t min_ue_end_t, int64_t max_ue_end_t, int n_backsearch, uint32_t seq_len, int gap_len, ubyte_t *seq, ubyte_t *ref_seq,  const ubyte_t *pacseq, const AlnParam *ap, const gap_opt_t *opt, list<jigsaw_junction_t*> *junctions)
 
 {
 	ubyte_t *gap_seq = seq + ue->end_q - n_backsearch + 1;
@@ -2303,6 +2312,9 @@ int jigsaw_locate_junc_two_anchors_with_anno (jigsaw_exon_t *ue, jigsaw_exon_t *
 	}
 
 	for (int64_t ue_end_t = min_ue_end_t; ue_end_t <= max_ue_end_t; ++ue_end_t) {
+		//remove positions which are too close to the boundary 
+                int breakpoint_pos_q_tmp = ue->end_q - n_backsearch + ue_end_t - min_ue_end_t;
+                if(breakpoint_pos_q_tmp +1 < opt->known_junc_min_anchor || (int (seq_len) - breakpoint_pos_q_tmp) < opt->known_junc_min_anchor ) continue;
 	       int64_t de_start_t = (de->start_t + n_backsearch) - (gap_len - (ue_end_t - min_ue_end_t));
 	       for (uint32_t sense_strand = 0; sense_strand < 2; ++sense_strand) {
 		   if( (! (opt->strand_mode & STRAND_MODE_REVERSE) ) && ( sense_strand != ue->strand )  ) continue;
@@ -2547,7 +2559,7 @@ int jigsaw_locate_junc_two_anchors_denovo (jigsaw_exon_t *ue, jigsaw_exon_t *de,
 } 
 
 
-int jigsaw_locate_junc_two_anchors_inner_exon_with_anno (jigsaw_exon_t *ue, jigsaw_exon_t *de, int64_t min_ue_end_t, int64_t max_ue_end_t, int n_backsearch, ubyte_t *seq, const ubyte_t *pacseq,const ubyte_t *ntpac, int64_t l_pac, bwt_t *const bwt[2], const int *g_log_n, const gap_opt_t *opt, list<jigsaw_junction_t*> *junctions, list<jigsaw_exon_t*> *exons)
+int jigsaw_locate_junc_two_anchors_inner_exon_with_anno (jigsaw_exon_t *ue, jigsaw_exon_t *de, int64_t min_ue_end_t, int64_t max_ue_end_t, int n_backsearch,uint32_t seq_len,  ubyte_t *seq, const ubyte_t *pacseq,const ubyte_t *ntpac, int64_t l_pac, bwt_t *const bwt[2], const int *g_log_n, const gap_opt_t *opt, list<jigsaw_junction_t*> *junctions, list<jigsaw_exon_t*> *exons)
 {
     ubyte_t *query_seq = seq; 
     int64_t ue_end_q, de_start_q, ue_end_t, de_start_t, me_start_t, me_end_t;
@@ -2557,7 +2569,7 @@ int jigsaw_locate_junc_two_anchors_inner_exon_with_anno (jigsaw_exon_t *ue, jigs
     AlnParam ap = aln_param_bwa;
     int local_max_diff = (int) opt->max_diff;
     if(local_max_diff >2 ) local_max_diff = 2;
-    ap.band_width = local_max_diff;
+    ap.band_width = local_max_diff >1 ? local_max_diff: 1;
 
 	uint32_t *ue_adjust_diff =new uint32_t[ n_backsearch +1 ];
 	int diff_track = 0;
@@ -2585,6 +2597,9 @@ int jigsaw_locate_junc_two_anchors_inner_exon_with_anno (jigsaw_exon_t *ue, jigs
     list< pair<int64_t, int64_t> > ds_sites;
 	
     for (ue_end_t = min_ue_end_t; ue_end_t <= ue->end_t; ue_end_t++ ){
+	//skip if the upstream pos is too close to the read start
+	int breakpoint_pos_q_tmp = ue->end_q - n_backsearch + ue_end_t - min_ue_end_t;
+	if(breakpoint_pos_q_tmp +1 < opt->known_junc_min_anchor ) continue;
 	for (uint32_t sense_strand = 0; sense_strand < 2; ++sense_strand) {
 	    
 	    if( (! (opt->strand_mode & STRAND_MODE_REVERSE) ) && ( sense_strand != ue->strand ) ) continue;
@@ -2609,6 +2624,9 @@ int jigsaw_locate_junc_two_anchors_inner_exon_with_anno (jigsaw_exon_t *ue, jigs
     
     //do the same for the downstream
     for(de_start_t = de->start_t + n_backsearch; de_start_t >= de->start_t; de_start_t--){
+	//skip when the pos is too close to the end of the read
+	int breakpoint_pos_q_tmp = de->start_q + de_start_t -de->start_t;
+	if ( (int (seq_len) - breakpoint_pos_q_tmp) < opt->known_junc_min_anchor ) continue;
 	for (uint32_t sense_strand = 0; sense_strand < 2; ++sense_strand) {
 
 	    if( (! (opt->strand_mode & STRAND_MODE_REVERSE) ) && ( sense_strand != de->strand ) ) continue;
@@ -2741,7 +2759,7 @@ int jigsaw_locate_junc_two_anchors_inner_exon_with_anno (jigsaw_exon_t *ue, jigs
 
 //this is to find small exons between these two anchors.
 //TODO: modify this to output multi junctions later
-int jigsaw_locate_junc_two_anchors_inner_exon_denovo(jigsaw_exon_t *ue, jigsaw_exon_t *de, int64_t min_ue_end_t, int64_t max_ue_end_t, int n_backsearch, ubyte_t *seq, const ubyte_t *pacseq,const ubyte_t *ntpac, int64_t l_pac, bwt_t *const bwt[2], const int *g_log_n, const gap_opt_t *opt, list<jigsaw_junction_t*> *junctions, list<jigsaw_exon_t*> *exons)
+int jigsaw_locate_junc_two_anchors_inner_exon_denovo(jigsaw_exon_t *ue, jigsaw_exon_t *de, int64_t min_ue_end_t, int64_t max_ue_end_t, int n_backsearch, uint32_t seq_len, ubyte_t *seq, const ubyte_t *pacseq,const ubyte_t *ntpac, int64_t l_pac, bwt_t *const bwt[2], const int *g_log_n, const gap_opt_t *opt, list<jigsaw_junction_t*> *junctions, list<jigsaw_exon_t*> *exons)
 {
     int num_me_found_denovo = 0;
     ubyte_t *query_seq = seq;
@@ -2768,6 +2786,9 @@ int jigsaw_locate_junc_two_anchors_inner_exon_denovo(jigsaw_exon_t *ue, jigsaw_e
 
     int64_t ue_end_q, de_start_q, ue_end_t, de_start_t;
     for (ue_end_t = min_ue_end_t, ue_end_q = ue->end_q - n_backsearch; ue_end_t <= ue->end_t; ue_end_t++, ue_end_q++ )	{
+	//skip if the upstream pos is too close to the read start
+	int breakpoint_pos_q_tmp = ue->end_q - n_backsearch + ue_end_t - min_ue_end_t;
+	if(breakpoint_pos_q_tmp +1 < opt->min_anchor ) continue;
 	for (uint32_t sense_strand = 0; sense_strand < 2; ++sense_strand) {
 	    
 	    if( (! (opt->strand_mode & STRAND_MODE_REVERSE) ) && ( sense_strand != ue->strand ) ) continue;
@@ -2795,6 +2816,9 @@ int jigsaw_locate_junc_two_anchors_inner_exon_denovo(jigsaw_exon_t *ue, jigsaw_e
 		uint32_t ds_type = sense_strand ? SPLICE_DONOR : SPLICE_ACCEPTOR;
 		for(de_start_t = de->start_t + n_backsearch, de_start_q = de->start_q + n_backsearch; de_start_t >= de->start_t; de_start_t--, de_start_q--)	{
 		     if(de_start_t - ue_end_t < 2*opt->min_intron_size + opt->min_exon_size ) continue;
+			//skip when the pos is too close to the end of the read
+		     breakpoint_pos_q_tmp = de->start_q + de_start_t -de->start_t;
+		     if ( (int (seq_len) - breakpoint_pos_q_tmp) < opt->min_anchor ) continue;
 		     int64_t length = de_start_q - ue_end_q -1;
 		     if (length < opt->min_exon_size) continue;
 			splice_site_flag = 0;
@@ -2984,6 +3008,7 @@ void jigsaw_locate_junc_two_anchors (jigsaw_exon_t *ue, jigsaw_exon_t *de,
 	AlnParam ap = aln_param_bwa;
 	//TODO: need more sophisticated rules; the bound is too loose here
 	ap.band_width =  int (opt->max_diff );
+	if (ap.band_width <1) ap.band_width = 1;
 	if( (!opt->splice_site_map) && ap.band_width>2) ap.band_width = 2;
 
 	int64_t min_ue_end_t = ue->end_t - n_backsearch;
@@ -2997,7 +3022,7 @@ void jigsaw_locate_junc_two_anchors (jigsaw_exon_t *ue, jigsaw_exon_t *de,
 	
 	if(opt->splice_site_map)// if junction database is provided, check it first
 	{
-	    num_junc_found_in_anno = jigsaw_locate_junc_two_anchors_with_anno(ue, de, min_ue_end_t, max_ue_end_t, n_backsearch, gap_len, seq, ref_seq, pacseq, &ap, opt, junctions);
+	    num_junc_found_in_anno = jigsaw_locate_junc_two_anchors_with_anno(ue, de, min_ue_end_t, max_ue_end_t, n_backsearch, seq_len, gap_len, seq, ref_seq, pacseq, &ap, opt, junctions);
 	    //if(opt->non_denovo_search) {free(ref_seq); return;}
 	    //stop here if both splice_site_map and non_denovo_search
 
@@ -3016,10 +3041,10 @@ void jigsaw_locate_junc_two_anchors (jigsaw_exon_t *ue, jigsaw_exon_t *de,
 	int num_me_found_in_anno = 0, num_me_found_denovo = 0;	
 	if (de->start_t - 1 - ue->end_t > 2 * opt->max_intron_size + opt->min_anchor) return;
 	 if(opt->splice_site_map) {
-	     num_me_found_in_anno = jigsaw_locate_junc_two_anchors_inner_exon_with_anno(ue, de, min_ue_end_t, max_ue_end_t, n_backsearch, seq, pacseq, ntpac, l_pac,  bwt, g_log_n, opt, junctions, exons);
+	     num_me_found_in_anno = jigsaw_locate_junc_two_anchors_inner_exon_with_anno(ue, de, min_ue_end_t, max_ue_end_t, n_backsearch, seq_len, seq, pacseq, ntpac, l_pac,  bwt, g_log_n, opt, junctions, exons);
 	 }
 	 if (opt->non_denovo_search == 0){
-	     num_me_found_denovo = jigsaw_locate_junc_two_anchors_inner_exon_denovo(ue, de, min_ue_end_t, max_ue_end_t, n_backsearch, seq, pacseq, ntpac, l_pac,  bwt, g_log_n, opt, junctions, exons);
+	     num_me_found_denovo = jigsaw_locate_junc_two_anchors_inner_exon_denovo(ue, de, min_ue_end_t, max_ue_end_t, n_backsearch, seq_len, seq, pacseq, ntpac, l_pac,  bwt, g_log_n, opt, junctions, exons);
 	 }
       }
 }
@@ -3620,7 +3645,7 @@ uint32_t *exonic_aln2cigar32(const jigsaw_spliced_aln_t *aln, ubyte_t *seq,
 	int max_cigar, _n_cigar = 0, n_exon_cigar;
 	uint32_t *cigar, *exon_cigar;
 	AlnParam ap = aln_param_bwa;
-	ap.band_width = band_width; //override band width
+	ap.band_width = band_width > 1? band_width: 1; //override band width
 	max_cigar = *n_cigar = 1;
 	cigar = (uint32_t*)malloc(*n_cigar * sizeof (uint32_t));
 	int len_t, len_q, l, path_len;
@@ -3672,7 +3697,7 @@ uint32_t *spliced_aln2cigar32(const jigsaw_spliced_aln_t *aln, ubyte_t *seq,
 	//unsigned char last_type;
 
 	AlnParam ap = aln_param_bwa;
-	ap.band_width = band_width; //override band width
+	ap.band_width = band_width > 1 ? band_width : 1 ; //override band width
 
 	jigsaw_junction_t *p, *q;
 	int n_junctions = aln->junctions->size ();
@@ -3807,7 +3832,7 @@ void jigsaw_aln_one_spliced (bwt_t *const bwt[2], bwa_seq_t *seq, const int *g_l
 	//the size of the query sequence is too small; do nothing
 
 	/*get all words in the query sequence*/
-	jigsaw_set_read_words (seq, opt->word_size, opt->mode & BWA_MODE_COMPREAD);
+	jigsaw_set_read_words (seq, opt->word_size, opt->word_max_overlap,  opt->mode & BWA_MODE_COMPREAD);
 
 	//fprintf (stderr, "collect words\n");
 

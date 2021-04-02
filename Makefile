@@ -17,12 +17,12 @@ OBJS=		utils.o bwt.o bwtio.o jigsawaln.o bwtgap.o is.o \
 
 
 PROG=		olego olegoindex #bwtsw #jigsawse
-INCLUDES= 	-I./kent -I./cz	
+INCLUDES=	-I./cz	
 
 LIBS=		-lm -lz -lpthread -Lbwt_gen -lbwtgen
-LIBS2=		./cz/czlib.a ./kent/kent.a
+LIBS2=		./cz/czlib.a 
 
-SUBDIRS=	. bwt_gen kent cz
+SUBDIRS=	. bwt_gen cz
 
 .SUFFIXES:.c .o .cc
 
