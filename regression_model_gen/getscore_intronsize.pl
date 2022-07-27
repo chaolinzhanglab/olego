@@ -1,3 +1,5 @@
+#!/usr/bin/env perl
+
 use strict;
 #input 1 is a fa file
 

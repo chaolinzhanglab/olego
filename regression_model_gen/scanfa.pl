@@ -1,3 +1,5 @@
+#!/usr/bin/env perl
+
 use strict;
 # this script scan fa format files and give the number of ACGT in the background
 

@@ -1,3 +1,5 @@
+#!/usr/bin/env perl
+
 # input: fa file
 # print ACGT percent in the sequences
 use strict;

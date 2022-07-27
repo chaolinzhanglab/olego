@@ -1,3 +1,5 @@
+#!/usr/bin/env perl
+
 # this scripts pick random entries from 5ss pos and 3ss pos to make false splice sites, so there are three inputs
 #   5ss frag 
 #   3ss frag

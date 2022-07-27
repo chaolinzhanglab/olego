@@ -1,3 +1,5 @@
+#!/usr/bin/env perl
+
 # Adapted from Chenghai Xue's script
 
 $starttime=time();

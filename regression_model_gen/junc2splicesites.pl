@@ -1,3 +1,5 @@
+#!/usr/bin/env perl
+
 open(input, $ARGV[0]);
 while($line =<input>)
 {

@@ -1,3 +1,5 @@
+#!/usr/bin/env perl
+
 open(tpfile,$ARGV[0]);
 @tpentries = <tpfile>;
 close(tpfile);

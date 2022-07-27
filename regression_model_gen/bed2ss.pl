@@ -1,3 +1,5 @@
+#!/usr/bin/env perl
+
 # convert bed file into splice sites ( +-15 nt)
 use strict;
 use warnings;

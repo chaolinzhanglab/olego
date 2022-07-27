@@ -1,3 +1,5 @@
+#!/usr/bin/env perl
+
 # Author: wuj@cshl.edu
 
 use strict;
